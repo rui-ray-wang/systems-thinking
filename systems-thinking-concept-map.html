@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Systems Thinking — Concept Map</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; color: #e8eaf0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  #header { padding: 12px 20px; background: #161b27; border-bottom: 1px solid #2a2f3e; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+  #header h1 { font-size: 15px; font-weight: 600; color: #c8d0e8; letter-spacing: 0.02em; }
+  #header p { font-size: 12px; color: #6b7280; }
+  .preset-btns { margin-left: auto; display: flex; gap: 8px; }
+  .preset-btn { padding: 5px 12px; border-radius: 6px; border: 1px solid #2a2f3e; background: #1e2435; color: #9ca3af; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .preset-btn:hover { border-color: #4f6ef7; color: #a5b4fc; }
+  .preset-btn.active { background: #1e2d5a; border-color: #4f6ef7; color: #a5b4fc; }
+
+  #main { display: flex; flex: 1; overflow: hidden; }
+
+  #canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+  canvas { display: block; cursor: grab; }
+  canvas.dragging { cursor: grabbing; }
+
+  #tooltip {
+    position: absolute; pointer-events: none; display: none;
+    background: #1a1f2e; border: 1px solid #2e3650; border-radius: 10px;
+    padding: 14px 16px; max-width: 280px; z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  #tooltip .tip-category { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+  #tooltip .tip-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: #e8eaf0; }
+  #tooltip .tip-def { font-size: 12px; line-height: 1.55; color: #9ca3af; margin-bottom: 8px; }
+  #tooltip .tip-example { font-size: 11px; line-height: 1.5; color: #6b7280; padding: 8px; background: #0f1117; border-radius: 6px; border-left: 3px solid #2a2f3e; }
+  #tooltip .tip-example em { color: #a5b4fc; font-style: normal; font-weight: 600; }
+
+  #sidebar { width: 260px; background: #13182a; border-left: 1px solid #1e2435; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+  #sidebar-inner { flex: 1; overflow-y: auto; padding: 16px; }
+  #sidebar-inner::-webkit-scrollbar { width: 4px; }
+  #sidebar-inner::-webkit-scrollbar-track { background: transparent; }
+  #sidebar-inner::-webkit-scrollbar-thumb { background: #2a2f3e; border-radius: 2px; }
+
+  .sidebar-section { margin-bottom: 20px; }
+  .sidebar-section h3 { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #4b5563; margin-bottom: 10px; }
+
+  .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #9ca3af; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .legend-line { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; color: #9ca3af; }
+  .legend-seg { height: 2px; width: 28px; flex-shrink: 0; }
+  .legend-seg.reinforce { background: #4ade80; }
+  .legend-seg.balance { background: #f87171; border-top: 2px dashed #f87171; height: 0; }
+  .legend-seg.relates { background: #6b7280; }
+
+  .node-list-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; margin-bottom: 4px; cursor: pointer; transition: background 0.1s; font-size: 12px; }
+  .node-list-item:hover { background: #1e2435; }
+  .node-list-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .node-list-item .nname { flex: 1; color: #c8d0e8; }
+  .node-list-item .know-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+  .know-know { background: #1a3a2a; color: #4ade80; }
+  .know-fuzzy { background: #2a2a1a; color: #fbbf24; }
+  .know-unknown { background: #2a1a1a; color: #f87171; }
+
+  #prompt-area { border-top: 1px solid #1e2435; padding: 14px 16px; flex-shrink: 0; }
+  #prompt-area h3 { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #4b5563; margin-bottom: 8px; }
+  #prompt-text { font-size: 11px; line-height: 1.6; color: #9ca3af; background: #0f1117; border: 1px solid #1e2435; border-radius: 6px; padding: 10px; min-height: 80px; max-height: 120px; overflow-y: auto; }
+  #copy-btn { margin-top: 8px; width: 100%; padding: 7px; border-radius: 6px; border: 1px solid #2a2f3e; background: #1e2435; color: #9ca3af; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  #copy-btn:hover { border-color: #4f6ef7; color: #a5b4fc; }
+  #copy-btn.copied { border-color: #4ade80; color: #4ade80; }
+
+  .controls-row { display: flex; gap: 6px; margin-top: 8px; }
+  .ctrl-btn { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid #2a2f3e; background: #1a1f2e; color: #6b7280; font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .ctrl-btn:hover { border-color: #4f6ef7; color: #a5b4fc; }
+
+  .zoom-controls { position: absolute; bottom: 16px; left: 16px; display: flex; gap: 4px; z-index: 10; }
+  .zoom-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #2a2f3e; background: #161b27cc; color: #9ca3af; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; backdrop-filter: blur(8px); }
+  .zoom-btn:hover { border-color: #4f6ef7; color: #a5b4fc; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <h1>Systems Thinking — Concept Map</h1>
+    <p>Hover nodes to explore · Click nodes to focus · Drag to rearrange</p>
+  </div>
+  <div class="preset-btns">
+    <button class="preset-btn active" onclick="setPreset('full')">Full Map</button>
+    <button class="preset-btn" onclick="setPreset('loops')">Feedback Loops</button>
+    <button class="preset-btn" onclick="setPreset('archetypes')">Archetypes</button>
+    <button class="preset-btn" onclick="setPreset('leverage')">Leverage Points</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="canvas-wrap">
+    <canvas id="c"></canvas>
+    <div id="tooltip">
+      <div class="tip-category" id="tip-cat"></div>
+      <div class="tip-title" id="tip-title"></div>
+      <div class="tip-def" id="tip-def"></div>
+      <div class="tip-example" id="tip-ex"></div>
+    </div>
+    <div class="zoom-controls">
+      <button class="zoom-btn" onclick="zoom(1.2)">+</button>
+      <button class="zoom-btn" onclick="zoom(0.83)">−</button>
+      <button class="zoom-btn" onclick="resetView()" title="Reset view">⊙</button>
+    </div>
+  </div>
+
+  <div id="sidebar">
+    <div id="sidebar-inner">
+      <div class="sidebar-section">
+        <h3>Node Categories</h3>
+        <div class="legend-item"><div class="legend-dot" style="background:#4f6ef7"></div>Core Building Blocks</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div>Feedback Loops</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>System Dynamics</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f87171"></div>Archetypes</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>Leverage Points</div>
+      </div>
+      <div class="sidebar-section">
+        <h3>Connection Types</h3>
+        <div class="legend-line"><div class="legend-seg reinforce"></div>Reinforces / strengthens</div>
+        <div class="legend-line"><div style="height:2px;width:28px;background:repeating-linear-gradient(90deg,#f87171 0,#f87171 5px,transparent 5px,transparent 9px)"></div>Balances / resists</div>
+        <div class="legend-line"><div class="legend-seg relates"></div>Relates to / shapes</div>
+      </div>
+      <div class="sidebar-section">
+        <h3>Your Knowledge</h3>
+        <div id="node-list"></div>
+      </div>
+      <div class="controls-row">
+        <button class="ctrl-btn" onclick="autoLayout()">Auto-layout</button>
+        <button class="ctrl-btn" onclick="resetKnowledge()">Reset all</button>
+      </div>
+    </div>
+    <div id="prompt-area">
+      <h3>Study Prompt</h3>
+      <div id="prompt-text"></div>
+      <button id="copy-btn" onclick="copyPrompt()">Copy prompt</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('canvas-wrap');
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const NODES = [
+  // Core building blocks
+  { id:'stock', label:'Stock', short:'Stock', cat:'Core', color:'#4f6ef7',
+    def:'A quantity that accumulates or depletes over time. Stocks create inertia — they change slowly even when flows change rapidly.',
+    example:'<em>Nokia</em>: 51% market share (a stock). Even as the ecosystem deteriorated, the stock eroded slowly — masking the crisis for years.' },
+  { id:'flow', label:'Flow', short:'Flow', cat:'Core', color:'#4f6ef7',
+    def:'The rate of change of a stock — inflows add to it, outflows drain it. You can only directly control flows, never stocks.',
+    example:'<em>Beijing traffic</em>: New car registrations = inflow to the vehicle stock. Parking fees influenced the outflow (trips taken), not the stock directly.' },
+  { id:'feedback', label:'Feedback Loop', short:'Feedback', cat:'Core', color:'#4f6ef7',
+    def:'A circular chain of cause and effect where a change in a stock affects its own inflows or outflows. All system behavior emerges from feedback loops.',
+    example:'More congestion → pressure to build roads → more roads → more driving → more congestion. The loop closes back on itself.' },
+
+  // Feedback loop types
+  { id:'reinforce', label:'Reinforcing Loop (R)', short:'R Loop', cat:'Loops', color:'#a78bfa',
+    def:'A feedback loop with an even number of negative links. Amplifies change — creates growth or collapse. Also called virtuous/vicious cycles or flywheels.',
+    example:'<em>Apple platform</em>: More devices → more developers → more apps → better platform → more devices. Self-amplifying, tipped into dominance by 2012.' },
+  { id:'balance', label:'Balancing Loop (B)', short:'B Loop', cat:'Loops', color:'#a78bfa',
+    def:'A feedback loop with an odd number of negative links. Resists change, seeks a goal or equilibrium. Creates stability — or frustrating policy resistance.',
+    example:'<em>Beijing parking fees</em>: More congestion → fees raised → driving more expensive → some switch to transit → congestion falls. Works briefly, then saturates.' },
+  { id:'polar', label:'Loop Polarity (+/−)', short:'Polarity', cat:'Loops', color:'#a78bfa',
+    def:'Each causal link is labeled + (same direction) or − (opposite direction). Count the negatives: even = Reinforcing, odd = Balancing.',
+    example:'Traffic → road investment (+) → capacity (+) → ease of driving (+) → traffic (+). All positive links = Reinforcing loop = induced demand.' },
+
+  // Dynamics
+  { id:'delay', label:'Delay', short:'Delay', cat:'Dynamics', color:'#f59e0b',
+    def:'A gap in time between cause and effect. Delays cause oscillation, overshoot, and policy resistance. The single most underestimated feature of complex systems.',
+    example:'<em>Nokia</em>: 3–4 year perception delay (bad news filtered up), response delay (strategy frozen), impact delay (pivot too late). Each delay was fatal.' },
+  { id:'nonlinear', label:'Non-linearity', short:'Non-linear', cat:'Dynamics', color:'#f59e0b',
+    def:'System behavior is not proportional to inputs. Small changes can have enormous effects (tipping points); large changes can have no effect (thresholds).',
+    example:'Platform tipping points: Android gained little until ~2011, then hit critical developer mass. The same dynamic makes it impossible to "be just a bit less dominant."' },
+  { id:'emergence', label:'Emergence', short:'Emergence', cat:'Dynamics', color:'#f59e0b',
+    def:'System-level behaviors that arise from interactions between parts — not predictable from studying any single component in isolation.',
+    example:'Traffic jams emerge from individual driving decisions. Apple\'s $85B services ecosystem emerged from the interaction of devices, developers, and users — no one designed it.' },
+
+  // Archetypes
+  { id:'ftf', label:'Fixes That Fail', short:'Fixes→Fail', cat:'Archetype', color:'#f87171',
+    def:'A quick fix relieves a symptom but creates a delayed side effect that worsens the original problem. The fix is applied again, creating a dependency.',
+    example:'<em>Beijing road expansion</em>: Roads relieve congestion → induced demand fills roads → more congestion. The fix created the problem it was meant to solve.' },
+  { id:'stb', label:'Shifting the Burden', short:'Shift Burden', cat:'Archetype', color:'#f87171',
+    def:'A symptomatic solution works well enough that investment in the fundamental solution atrophies. Side effects create addiction to the symptomatic fix.',
+    example:'<em>Nokia</em>: Hardware upgrades + marketing (symptomatic) → reduced urgency to rewrite Symbian (fundamental) → platform architecture never fixed.' },
+  { id:'ltg', label:'Limits to Growth', short:'Limits→Growth', cat:'Archetype', color:'#f87171',
+    def:'A reinforcing growth loop hits a balancing constraint. Pushing harder on the growth driver makes the constraint tighten faster. Growth slows, stalls, or reverses.',
+    example:'<em>Apple premium pricing</em>: Better devices → higher margins → more R&D → better devices (R loop) hits price ceiling in emerging markets (B constraint).' },
+
+  // Leverage points
+  { id:'lev-numbers', label:'Numbers & Parameters', short:'Lev: Numbers', cat:'Leverage', color:'#34d399',
+    def:'Level 10–12: Change a rate, tax, or parameter. Least powerful. Works within the existing system structure without changing it.',
+    example:'Beijing raises parking fees 5×. Works briefly. The system absorbs and adapts. Nothing structural changes.' },
+  { id:'lev-feedback', label:'Feedback Structure', short:'Lev: Feedback', cat:'Leverage', color:'#34d399',
+    def:'Level 5–8: Change the feedback loop structure — who gets what information, how fast, with what delays. Moderately powerful.',
+    example:'Singapore\'s ERP: Real-time congestion pricing restructures the feedback between driving cost and traffic. More powerful than static fee increases.' },
+  { id:'lev-goals', label:'Goals & Paradigms', short:'Lev: Goals', cat:'Leverage', color:'#34d399',
+    def:'Level 1–4: Change what the system is trying to do, or the beliefs that determine what\'s worth pursuing. Most powerful and most resistant to analysis.',
+    example:'Paradigm shift: "Car ownership = middle-class success" → "transit use = smart urbanist." This mental model shapes every other variable. Singapore did it.' },
+];
+
+const EDGES = [
+  // Core relationships
+  { from:'stock', to:'flow', type:'relates', label:'changed by' },
+  { from:'flow', to:'stock', type:'relates', label:'fills/drains' },
+  { from:'flow', to:'feedback', type:'relates', label:'creates' },
+  { from:'stock', to:'feedback', type:'relates', label:'drives' },
+  { from:'feedback', to:'reinforce', type:'relates', label:'type of' },
+  { from:'feedback', to:'balance', type:'relates', label:'type of' },
+  { from:'polar', to:'reinforce', type:'relates', label:'determines' },
+  { from:'polar', to:'balance', type:'relates', label:'determines' },
+  // Dynamics
+  { from:'delay', to:'balance', type:'balance', label:'disrupts' },
+  { from:'delay', to:'feedback', type:'balance', label:'distorts' },
+  { from:'reinforce', to:'nonlinear', type:'reinforce', label:'creates' },
+  { from:'reinforce', to:'emergence', type:'reinforce', label:'drives' },
+  // Archetypes
+  { from:'balance', to:'ftf', type:'relates', label:'generates' },
+  { from:'reinforce', to:'ltg', type:'relates', label:'underlies' },
+  { from:'balance', to:'ltg', type:'relates', label:'constrains' },
+  { from:'stb', to:'delay', type:'reinforce', label:'exploits' },
+  { from:'ftf', to:'delay', type:'reinforce', label:'exploits' },
+  // Leverage
+  { from:'lev-numbers', to:'flow', type:'relates', label:'tweaks' },
+  { from:'lev-feedback', to:'feedback', type:'reinforce', label:'restructures' },
+  { from:'lev-goals', to:'stock', type:'reinforce', label:'redefines' },
+  { from:'lev-goals', to:'lev-feedback', type:'reinforce', label:'enables' },
+  { from:'lev-feedback', to:'lev-numbers', type:'reinforce', label:'enables' },
+];
+
+// ── LAYOUT ───────────────────────────────────────────────────────────────────
+const positions = {
+  stock:        { x: 380, y: 220 },
+  flow:         { x: 550, y: 280 },
+  feedback:     { x: 460, y: 370 },
+  reinforce:    { x: 320, y: 460 },
+  balance:      { x: 600, y: 460 },
+  polar:        { x: 460, y: 560 },
+  delay:        { x: 720, y: 340 },
+  nonlinear:    { x: 240, y: 360 },
+  emergence:    { x: 180, y: 480 },
+  ftf:          { x: 700, y: 520 },
+  stb:          { x: 820, y: 420 },
+  ltg:          { x: 760, y: 620 },
+  'lev-numbers':{ x: 340, y: 660 },
+  'lev-feedback':{ x: 500, y: 680 },
+  'lev-goals':  { x: 640, y: 720 },
+};
+
+let nodePos = {};
+NODES.forEach(n => {
+  nodePos[n.id] = { ...positions[n.id] };
+});
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+const knowledge = {};
+NODES.forEach(n => { knowledge[n.id] = 'fuzzy'; });
+
+let scale = 1, offsetX = 0, offsetY = 0;
+let dragging = null, dragStartX = 0, dragStartY = 0, nodeStartX = 0, nodeStartY = 0;
+let panStart = null, panOffset = null;
+let hoveredNode = null;
+let visibleNodes = new Set(NODES.map(n => n.id));
+let activePreset = 'full';
+
+const NODE_R = 38;
+const KNOW_COLORS = { know: '#4ade80', fuzzy: '#fbbf24', unknown: '#f87171' };
+
+// ── CANVAS SIZING ─────────────────────────────────────────────────────────────
+function resize() {
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  draw();
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ── DRAW ─────────────────────────────────────────────────────────────────────
+function worldToScreen(x, y) {
+  return { x: x * scale + offsetX, y: y * scale + offsetY };
+}
+function screenToWorld(x, y) {
+  return { x: (x - offsetX) / scale, y: (y - offsetY) / scale };
+}
+
+function drawArrow(x1, y1, x2, y2, color, dashed, label) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  if (len < 1) return;
+  const nx = dx/len, ny = dy/len;
+  // shorten by node radius
+  const sx = x1 + nx * NODE_R * scale;
+  const sy = y1 + ny * NODE_R * scale;
+  const ex = x2 - nx * NODE_R * scale;
+  const ey = y2 - ny * NODE_R * scale;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.55;
+  if (dashed) ctx.setLineDash([6, 4]);
+  else ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(ex, ey);
+  ctx.stroke();
+
+  // arrowhead
+  const angle = Math.atan2(ey - sy, ex - sx);
+  const aSize = 7;
+  ctx.globalAlpha = 0.75;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(ex, ey);
+  ctx.lineTo(ex - aSize * Math.cos(angle - 0.4), ey - aSize * Math.sin(angle - 0.4));
+  ctx.lineTo(ex - aSize * Math.cos(angle + 0.4), ey - aSize * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  // edge label
+  if (label && scale > 0.7) {
+    const mx = (sx + ex) / 2, my = (sy + ey) / 2;
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = color;
+    ctx.font = `${Math.round(9 * scale)}px -apple-system, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, mx, my - 8 * scale);
+  }
+  ctx.restore();
+}
+
+function drawNode(n) {
+  const p = nodePos[n.id];
+  const s = worldToScreen(p.x, p.y);
+  const r = NODE_R * scale;
+  const isHovered = hoveredNode === n.id;
+  const kc = KNOW_COLORS[knowledge[n.id]];
+
+  ctx.save();
+
+  // glow on hover
+  if (isHovered) {
+    ctx.shadowColor = n.color;
+    ctx.shadowBlur = 18 * scale;
+  }
+
+  // outer ring (knowledge color)
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, r + 3 * scale, 0, Math.PI * 2);
+  ctx.strokeStyle = kc;
+  ctx.lineWidth = 2.5 * scale;
+  ctx.globalAlpha = 0.7;
+  ctx.stroke();
+
+  // node fill
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+  const grad = ctx.createRadialGradient(s.x - r*0.3, s.y - r*0.3, r*0.1, s.x, s.y, r);
+  grad.addColorStop(0, n.color + '44');
+  grad.addColorStop(1, n.color + '18');
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.strokeStyle = n.color + 'aa';
+  ctx.lineWidth = 1.5 * scale;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // label
+  const lines = wrapLabel(n.short, r * 1.5);
+  ctx.fillStyle = '#e8eaf0';
+  ctx.font = `${Math.round(11 * scale)}px -apple-system, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const lineH = 14 * scale;
+  lines.forEach((line, i) => {
+    const y = s.y + (i - (lines.length - 1) / 2) * lineH;
+    ctx.fillText(line, s.x, y);
+  });
+
+  // category tag
+  if (scale > 0.75) {
+    ctx.font = `${Math.round(8 * scale)}px -apple-system, sans-serif`;
+    ctx.fillStyle = n.color + 'bb';
+    ctx.fillText(n.cat, s.x, s.y + r * 0.68);
+  }
+
+  ctx.restore();
+}
+
+function wrapLabel(text, maxW) {
+  const words = text.split(' ');
+  if (words.length === 1) return [text];
+  // simple: split at middle
+  const mid = Math.ceil(words.length / 2);
+  return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // subtle grid
+  ctx.save();
+  ctx.strokeStyle = '#1e2435';
+  ctx.lineWidth = 1;
+  const gridStep = 60 * scale;
+  const startX = offsetX % gridStep;
+  const startY = offsetY % gridStep;
+  for (let x = startX; x < canvas.width; x += gridStep) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = startY; y < canvas.height; y += gridStep) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(0+canvas.width, y); ctx.stroke();
+  }
+  ctx.restore();
+
+  // edges
+  EDGES.forEach(e => {
+    if (!visibleNodes.has(e.from) || !visibleNodes.has(e.to)) return;
+    const p1 = worldToScreen(nodePos[e.from].x, nodePos[e.from].y);
+    const p2 = worldToScreen(nodePos[e.to].x, nodePos[e.to].y);
+    const color = e.type === 'reinforce' ? '#4ade80' : e.type === 'balance' ? '#f87171' : '#4b5563';
+    drawArrow(p1.x, p1.y, p2.x, p2.y, color, e.type === 'balance', e.label);
+  });
+
+  // nodes
+  NODES.forEach(n => {
+    if (!visibleNodes.has(n.id)) return;
+    drawNode(n);
+  });
+}
+
+// ── INTERACTION ───────────────────────────────────────────────────────────────
+function getNodeAt(sx, sy) {
+  const w = screenToWorld(sx, sy);
+  for (let i = NODES.length - 1; i >= 0; i--) {
+    const n = NODES[i];
+    if (!visibleNodes.has(n.id)) continue;
+    const p = nodePos[n.id];
+    const dx = w.x - p.x, dy = w.y - p.y;
+    if (Math.sqrt(dx*dx + dy*dy) <= NODE_R) return n;
+  }
+  return null;
+}
+
+canvas.addEventListener('mousedown', e => {
+  const rect = canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+  const node = getNodeAt(sx, sy);
+  if (node) {
+    dragging = node;
+    const w = screenToWorld(sx, sy);
+    dragStartX = w.x; dragStartY = w.y;
+    nodeStartX = nodePos[node.id].x; nodeStartY = nodePos[node.id].y;
+    canvas.classList.add('dragging');
+  } else {
+    panStart = { x: e.clientX, y: e.clientY };
+    panOffset = { x: offsetX, y: offsetY };
+    canvas.classList.add('dragging');
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+
+  if (dragging) {
+    const w = screenToWorld(sx, sy);
+    nodePos[dragging.id].x = nodeStartX + (w.x - dragStartX);
+    nodePos[dragging.id].y = nodeStartY + (w.y - dragStartY);
+    draw();
+    return;
+  }
+  if (panStart) {
+    offsetX = panOffset.x + (e.clientX - panStart.x);
+    offsetY = panOffset.y + (e.clientY - panStart.y);
+    draw();
+    return;
+  }
+
+  const node = getNodeAt(sx, sy);
+  if (node !== null && hoveredNode !== node.id) {
+    hoveredNode = node.id;
+    draw();
+    showTooltip(node, e.clientX, e.clientY);
+  } else if (node === null && hoveredNode !== null) {
+    hoveredNode = null;
+    draw();
+    hideTooltip();
+  } else if (node !== null) {
+    positionTooltip(e.clientX, e.clientY);
+  }
+});
+
+canvas.addEventListener('mouseup', () => {
+  dragging = null; panStart = null;
+  canvas.classList.remove('dragging');
+});
+
+canvas.addEventListener('mouseleave', () => {
+  dragging = null; panStart = null;
+  canvas.classList.remove('dragging');
+  hoveredNode = null;
+  hideTooltip();
+  draw();
+});
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const factor = e.deltaY < 0 ? 1.1 : 0.91;
+  offsetX = mx + (offsetX - mx) * factor;
+  offsetY = my + (offsetY - my) * factor;
+  scale *= factor;
+  scale = Math.max(0.3, Math.min(2.5, scale));
+  draw();
+}, { passive: false });
+
+// ── TOOLTIP ───────────────────────────────────────────────────────────────────
+const tip = document.getElementById('tooltip');
+function showTooltip(node, cx, cy) {
+  document.getElementById('tip-cat').textContent = node.cat;
+  document.getElementById('tip-cat').style.color = node.color;
+  document.getElementById('tip-title').textContent = node.label;
+  document.getElementById('tip-title').style.color = node.color;
+  document.getElementById('tip-def').textContent = node.def;
+  document.getElementById('tip-ex').innerHTML = node.example;
+  tip.style.display = 'block';
+  positionTooltip(cx, cy);
+}
+function positionTooltip(cx, cy) {
+  const tw = 280, th = 160;
+  let left = cx + 18, top = cy - 20;
+  if (left + tw > window.innerWidth - 20) left = cx - tw - 18;
+  if (top + th > window.innerHeight - 20) top = window.innerHeight - th - 20;
+  tip.style.left = left + 'px';
+  tip.style.top = top + 'px';
+}
+function hideTooltip() { tip.style.display = 'none'; }
+
+// ── PRESETS ───────────────────────────────────────────────────────────────────
+function setPreset(name) {
+  activePreset = name;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (name === 'full') visibleNodes = new Set(NODES.map(n => n.id));
+  else if (name === 'loops') visibleNodes = new Set(['stock','flow','feedback','reinforce','balance','polar','delay','nonlinear']);
+  else if (name === 'archetypes') visibleNodes = new Set(['stock','flow','feedback','reinforce','balance','delay','ftf','stb','ltg']);
+  else if (name === 'leverage') visibleNodes = new Set(['stock','flow','feedback','reinforce','balance','delay','ftf','stb','ltg','lev-numbers','lev-feedback','lev-goals']);
+  renderSidebar();
+  draw();
+  updatePrompt();
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('node-list');
+  list.innerHTML = '';
+  NODES.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'node-list-item';
+    item.innerHTML = `
+      <div class="dot" style="background:${n.color}"></div>
+      <span class="nname">${n.label}</span>
+      <span class="know-badge know-${knowledge[n.id]}" onclick="cycleKnowledge('${n.id}',event)">${knowledge[n.id]}</span>
+    `;
+    item.addEventListener('click', () => focusNode(n.id));
+    list.appendChild(item);
+  });
+}
+
+function cycleKnowledge(id, e) {
+  e.stopPropagation();
+  const order = ['know', 'fuzzy', 'unknown'];
+  const cur = knowledge[id];
+  knowledge[id] = order[(order.indexOf(cur) + 1) % 3];
+  renderSidebar();
+  draw();
+  updatePrompt();
+}
+
+function resetKnowledge() {
+  NODES.forEach(n => { knowledge[n.id] = 'fuzzy'; });
+  renderSidebar(); draw(); updatePrompt();
+}
+
+function focusNode(id) {
+  const p = nodePos[id];
+  offsetX = canvas.width / 2 - p.x * scale;
+  offsetY = canvas.height / 2 - p.y * scale;
+  draw();
+}
+
+// ── AUTO-LAYOUT ───────────────────────────────────────────────────────────────
+function autoLayout() {
+  const ids = [...visibleNodes];
+  const vel = {};
+  ids.forEach(id => { vel[id] = { x: 0, y: 0 }; });
+
+  for (let iter = 0; iter < 200; iter++) {
+    // repulsion
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const a = nodePos[ids[i]], b = nodePos[ids[j]];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+        const force = 8000 / (dist * dist);
+        vel[ids[i]].x += force * dx / dist;
+        vel[ids[i]].y += force * dy / dist;
+        vel[ids[j]].x -= force * dx / dist;
+        vel[ids[j]].y -= force * dy / dist;
+      }
+    }
+    // attraction along edges
+    EDGES.forEach(e => {
+      if (!visibleNodes.has(e.from) || !visibleNodes.has(e.to)) return;
+      const a = nodePos[e.from], b = nodePos[e.to];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      const force = (dist - 200) * 0.03;
+      vel[e.from].x += force * dx / dist;
+      vel[e.from].y += force * dy / dist;
+      vel[e.to].x -= force * dx / dist;
+      vel[e.to].y -= force * dy / dist;
+    });
+    // apply with damping
+    ids.forEach(id => {
+      nodePos[id].x += vel[id].x * 0.08;
+      nodePos[id].y += vel[id].y * 0.08;
+      vel[id].x *= 0.85;
+      vel[id].y *= 0.85;
+    });
+  }
+  draw();
+}
+
+// ── ZOOM ──────────────────────────────────────────────────────────────────────
+function zoom(factor) {
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  offsetX = cx + (offsetX - cx) * factor;
+  offsetY = cy + (offsetY - cy) * factor;
+  scale *= factor;
+  scale = Math.max(0.3, Math.min(2.5, scale));
+  draw();
+}
+
+function resetView() {
+  scale = 1;
+  // center the visible nodes
+  const ids = [...visibleNodes];
+  if (ids.length === 0) return;
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  ids.forEach(id => {
+    minX = Math.min(minX, nodePos[id].x);
+    maxX = Math.max(maxX, nodePos[id].x);
+    minY = Math.min(minY, nodePos[id].y);
+    maxY = Math.max(maxY, nodePos[id].y);
+  });
+  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+  offsetX = canvas.width / 2 - cx * scale;
+  offsetY = canvas.height / 2 - cy * scale;
+  draw();
+}
+
+// ── PROMPT ────────────────────────────────────────────────────────────────────
+function updatePrompt() {
+  const know = NODES.filter(n => knowledge[n.id] === 'know' && visibleNodes.has(n.id)).map(n => n.label);
+  const fuzzy = NODES.filter(n => knowledge[n.id] === 'fuzzy' && visibleNodes.has(n.id)).map(n => n.label);
+  const unknown = NODES.filter(n => knowledge[n.id] === 'unknown' && visibleNodes.has(n.id)).map(n => n.label);
+
+  let parts = [];
+  if (know.length) parts.push(`I already understand: ${know.join(', ')}.`);
+  if (fuzzy.length) parts.push(`I'm fuzzy on: ${fuzzy.join(', ')}.`);
+  if (unknown.length) parts.push(`I have no idea about: ${unknown.join(', ')}.`);
+
+  const text = `I'm learning Systems Thinking fundamentals. ${parts.join(' ')} Please explain the fuzzy and unknown concepts, using concrete real-world examples (Nokia, Beijing traffic, Apple ecosystem). Build on what I already know. For each concept, show how it connects to the others in the system.`;
+  document.getElementById('prompt-text').textContent = text;
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-text').textContent;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = 'Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy prompt'; btn.classList.remove('copied'); }, 1800);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+resetView();
+renderSidebar();
+updatePrompt();
+</script>
+</body>
+</html>

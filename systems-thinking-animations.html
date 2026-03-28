@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Systems Thinking — Visual Concepts</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+
+/* ── HOME ── */
+#home{max-width:900px;margin:0 auto;padding:40px 24px}
+.site-title{font-size:28px;font-weight:700;color:#f0f4ff;margin-bottom:8px}
+.site-sub{font-size:14px;color:#6b7280;margin-bottom:40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.card{background:#131929;border:1px solid #1e2d45;border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden}
+.card:hover{border-color:#3b5bdb;transform:translateY(-2px);box-shadow:0 8px 32px rgba(59,91,219,0.2)}
+.card-cat{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
+.card-title{font-size:16px;font-weight:600;color:#e8eaf0;margin-bottom:6px}
+.card-desc{font-size:12px;color:#6b7280;line-height:1.5}
+.card-arrow{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:#2a3a5e;font-size:20px;transition:all 0.2s}
+.card:hover .card-arrow{color:#3b5bdb;right:12px}
+.cat-core{color:#4f6ef7}
+.cat-loops{color:#a78bfa}
+.cat-dynamics{color:#f59e0b}
+.cat-archetypes{color:#f87171}
+.cat-leverage{color:#34d399}
+
+/* ── VIEWER ── */
+#viewer{display:none;flex-direction:column;height:100vh}
+#viewer-header{background:#0d1117;border-bottom:1px solid #1e2d45;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+#back-btn{padding:6px 14px;border-radius:8px;border:1px solid #1e2d45;background:transparent;color:#9ca3af;font-size:13px;cursor:pointer;transition:all 0.15s}
+#back-btn:hover{border-color:#4f6ef7;color:#a5b4fc}
+#viewer-cat{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
+#viewer-title{font-size:18px;font-weight:700;color:#e8eaf0;margin-right:auto}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{padding:6px 14px;border-radius:8px;border:1px solid #1e2d45;background:transparent;color:#9ca3af;font-size:13px;cursor:pointer;transition:all 0.15s}
+.nav-btn:hover{border-color:#4f6ef7;color:#a5b4fc}
+
+#viewer-body{flex:1;display:flex;overflow:hidden}
+#anim-panel{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;background:#0d1117}
+canvas#anim{border-radius:16px;background:#0a0f1a;max-width:100%;max-height:100%}
+
+#info-panel{width:340px;background:#0f1624;border-left:1px solid #1e2d45;padding:28px;overflow-y:auto;flex-shrink:0}
+#info-panel h2{font-size:20px;font-weight:700;color:#e8eaf0;margin-bottom:10px}
+#info-def{font-size:13px;line-height:1.7;color:#9ca3af;margin-bottom:18px}
+.insight-box{background:#131929;border-radius:8px;padding:14px;margin-bottom:14px;border-left:3px solid #2a3a5e}
+.insight-box .ib-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px}
+.insight-box p{font-size:12px;line-height:1.6;color:#9ca3af}
+.insight-box em{font-style:normal;font-weight:600}
+#replay-btn{margin-top:8px;width:100%;padding:10px;border-radius:8px;border:1px solid #2a3a5e;background:#1a2035;color:#9ca3af;font-size:13px;cursor:pointer;transition:all 0.15s}
+#replay-btn:hover{border-color:#4f6ef7;color:#a5b4fc}
+
+/* ── PROGRESS BAR ── */
+#progress{height:3px;background:#1e2d45;flex-shrink:0}
+#progress-fill{height:100%;background:linear-gradient(90deg,#4f6ef7,#a78bfa);transition:width 0.1s;width:0%}
+</style>
+</head>
+<body>
+
+<div id="home">
+  <div class="site-title">Systems Thinking</div>
+  <div class="site-sub">Click any concept to see it in motion</div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div id="viewer">
+  <div id="viewer-header">
+    <button id="back-btn" onclick="showHome()">← All concepts</button>
+    <div>
+      <div id="viewer-cat"></div>
+      <div id="viewer-title"></div>
+    </div>
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="navConcept(-1)">← Prev</button>
+      <button class="nav-btn" onclick="navConcept(1)">Next →</button>
+    </div>
+  </div>
+  <div id="progress"><div id="progress-fill"></div></div>
+  <div id="viewer-body">
+    <div id="anim-panel"><canvas id="anim" width="640" height="420"></canvas></div>
+    <div id="info-panel">
+      <h2 id="info-title"></h2>
+      <div id="info-def"></div>
+      <div id="info-insights"></div>
+      <button id="replay-btn" onclick="replayCurrent()">↺ Replay animation</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CONCEPT DATA
+// ═══════════════════════════════════════════════════════════════════
+const CONCEPTS = [
+  {
+    id:'stock', title:'Stock', cat:'Core Building Block', catClass:'cat-core',
+    desc:'A quantity that accumulates or depletes over time. Stocks create inertia — they change slowly even when flows change rapidly.',
+    desc2:'Think of a stock as a bathtub: water level doesn\'t jump instantly, it rises or falls based on how fast water flows in and drains out.',
+    example:'<em>Nokia\'s market share</em> was a stock — it took years to drain even after the ecosystem collapsed.',
+    insight:'Stocks are why systems resist sudden change — and why crises often feel invisible until it\'s too late.',
+    anim: animStock
+  },
+  {
+    id:'flow', title:'Flow', cat:'Core Building Block', catClass:'cat-core',
+    desc:'The rate of change of a stock — inflows add to it, outflows drain it. You can only directly control flows, never stocks.',
+    desc2:'Flows are the taps and drains. A stock\'s level is determined by the balance between inflows and outflows over time.',
+    example:'<em>Beijing\'s parking fee</em> was an attempt to increase the outflow of driving trips — reducing the congestion stock.',
+    insight:'Changing a flow doesn\'t instantly change the stock. The delay between flow change and stock change is one of the biggest sources of strategic surprise.',
+    anim: animFlow
+  },
+  {
+    id:'reinforce', title:'Reinforcing Loop (R)', cat:'Feedback Loops', catClass:'cat-loops',
+    desc:'A feedback loop that amplifies change — creating growth or accelerating decline. Also called a flywheel, virtuous cycle, or vicious cycle.',
+    desc2:'Every variable in the loop pushes the next one higher (or lower). The loop feeds back on itself, making things bigger or smaller with each cycle.',
+    example:'<em>Apple\'s platform</em>: More devices → more developers → more apps → better platform → more devices.',
+    insight:'Reinforcing loops are self-sustaining once they gain momentum. That\'s why Apple\'s lead is structural, not just design quality.',
+    anim: animReinforce
+  },
+  {
+    id:'balance', title:'Balancing Loop (B)', cat:'Feedback Loops', catClass:'cat-loops',
+    desc:'A feedback loop that resists change and seeks a goal or equilibrium. Creates stability — or frustrating policy resistance.',
+    desc2:'The loop detects a gap between actual state and a goal, then acts to close that gap. Like a thermostat: temperature drifts → heater fires → temperature rises back.',
+    example:'<em>Beijing parking fees</em> created a balancing loop — higher fees reduced driving, which reduced pressure to raise fees further.',
+    insight:'Every intervention triggers balancing loops. Systems push back. That\'s why "obvious" solutions often produce disappointing long-term results.',
+    anim: animBalance
+  },
+  {
+    id:'delay', title:'Delay', cat:'System Dynamics', catClass:'cat-dynamics',
+    desc:'A gap in time between a cause and its effect. Delays cause oscillation, overshoot, and policy resistance — and are the single most underestimated feature of complex systems.',
+    desc2:'When we act, we expect results immediately. When they don\'t come, we act harder — then the delayed effect arrives on top of our extra action, causing overshoot.',
+    example:'<em>Nokia</em>: 3–4 year perception delay (fear filtered bad news upward) + response delay + impact delay = collapse that felt sudden but was building for years.',
+    insight:'Short delays create oscillation. Long delays create catastrophic surprises. Reducing delays is often more powerful than changing any parameter.',
+    anim: animDelay
+  },
+  {
+    id:'nonlinear', title:'Tipping Points', cat:'System Dynamics', catClass:'cat-dynamics',
+    desc:'Systems are non-linear: small changes can trigger massive effects (tipping points), and large changes can have no effect (thresholds). Input and output are rarely proportional.',
+    desc2:'Below a threshold, the system resists change. At the tipping point, the reinforcing loop takes over and the system rapidly shifts to a new state.',
+    example:'<em>Android\'s app ecosystem</em>: Tiny growth from 2008–2011, then tipping point at ~250K apps → developer investment surged → ecosystem became self-sustaining.',
+    insight:'Tipping points explain why problems that seemed manageable suddenly become crises — and why solutions that seemed slow suddenly work.',
+    anim: animTipping
+  },
+  {
+    id:'ftf', title:'Fixes That Fail', cat:'System Archetype', catClass:'cat-archetypes',
+    desc:'A quick fix relieves a symptom but creates a delayed side effect that worsens the original problem — eventually requiring another quick fix.',
+    desc2:'The fix works in the short term, which removes pressure to address the fundamental cause. The side effect builds up unnoticed, then returns the problem worse than before.',
+    example:'<em>Beijing road expansion</em>: New roads relieved congestion → induced demand filled the roads → more congestion than before. Repeated 3 times.',
+    insight:'Every time the fix "works," it deepens the trap. The solution to Fixes That Fail is to identify the fundamental problem — and address it directly.',
+    anim: animFTF
+  },
+  {
+    id:'stb', title:'Shifting the Burden', cat:'System Archetype', catClass:'cat-archetypes',
+    desc:'A symptomatic fix works well enough that investment in the fundamental solution atrophies. Side effects create dependency on the symptomatic fix.',
+    desc2:'Two solutions exist: symptomatic (fast, visible results) and fundamental (slow, structural change). The symptomatic fix crowds out the fundamental one over time.',
+    example:'<em>Nokia\'s Ovi Store and hardware upgrades</em> were symptomatic fixes. Each one reduced the urgency to rewrite Symbian. By the time they tried, it was too late.',
+    insight:'The trap deepens invisibly. The more "successful" the symptomatic fix, the more the organization loses the capacity for fundamental change.',
+    anim: animSTB
+  },
+  {
+    id:'ltg', title:'Limits to Growth', cat:'System Archetype', catClass:'cat-archetypes',
+    desc:'A reinforcing growth loop hits a balancing constraint. Pushing harder on the growth driver makes the constraint tighten faster, slowing or reversing growth.',
+    desc2:'Growth feels unlimited while the constraining loop is weak. As the constraint tightens, the reinforcing loop is gradually overcome — growth plateaus or collapses.',
+    example:'<em>Apple\'s premium pricing</em>: Better products → higher margins → more R&D (R loop) hits a ceiling in price-sensitive markets (B constraint).',
+    insight:'The high-leverage intervention is to address the constraint directly — not to push harder on growth. Pushing harder often tightens the constraint faster.',
+    anim: animLTG
+  },
+  {
+    id:'leverage', title:'Leverage Points', cat:'Leverage Points', catClass:'cat-leverage',
+    desc:'Places in a system where a small shift can produce large changes. Meadows ranked 12 leverage points from least to most powerful.',
+    desc2:'Most interventions happen at the weakest leverage levels (numbers, parameters). The most powerful leverage is changing goals and paradigms — the hardest to access.',
+    example:'<em>Singapore\'s congestion pricing</em> operates at Level 5 (feedback structure). Changing the mental model that cars equal success would be Level 2 — the highest leverage.',
+    insight:'"The higher the leverage point, the more the system will resist changing it." — Donella Meadows. Paradigm shifts are rare precisely because systems protect their paradigms.',
+    anim: animLeverage
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════════════════
+let currentIdx = 0;
+let animHandle = null;
+let animT = 0;
+
+const grid = document.getElementById('grid');
+CONCEPTS.forEach((c, i) => {
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.innerHTML = `
+    <div class="card-cat ${c.catClass}">${c.cat}</div>
+    <div class="card-title">${c.title}</div>
+    <div class="card-desc">${c.desc.substring(0,80)}…</div>
+    <div class="card-arrow">→</div>`;
+  el.onclick = () => openConcept(i);
+  grid.appendChild(el);
+});
+
+function showHome() {
+  stopAnim();
+  document.getElementById('home').style.display = 'block';
+  document.getElementById('viewer').style.display = 'none';
+}
+function openConcept(idx) {
+  currentIdx = idx;
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('viewer').style.display = 'flex';
+  loadConcept();
+}
+function navConcept(dir) {
+  currentIdx = (currentIdx + dir + CONCEPTS.length) % CONCEPTS.length;
+  loadConcept();
+}
+function replayCurrent() { loadConcept(); }
+
+function loadConcept() {
+  stopAnim();
+  const c = CONCEPTS[currentIdx];
+  document.getElementById('viewer-cat').textContent = c.cat;
+  document.getElementById('viewer-cat').className = 'cat ' + c.catClass;
+  document.getElementById('viewer-title').textContent = c.title;
+  document.getElementById('info-title').textContent = c.title;
+  document.getElementById('info-def').innerHTML = `<p style="margin-bottom:10px;line-height:1.7;color:#9ca3af;font-size:13px">${c.desc}</p><p style="line-height:1.7;color:#6b7280;font-size:12px">${c.desc2}</p>`;
+  document.getElementById('info-insights').innerHTML = `
+    <div class="insight-box" style="border-left-color:#4f6ef7">
+      <div class="ib-label" style="color:#4f6ef7">Real-World Example</div>
+      <p>${c.example}</p>
+    </div>
+    <div class="insight-box" style="border-left-color:#f59e0b">
+      <div class="ib-label" style="color:#f59e0b">Strategic Insight</div>
+      <p>${c.insight}</p>
+    </div>`;
+  // progress
+  document.getElementById('progress-fill').style.width = ((currentIdx + 1) / CONCEPTS.length * 100) + '%';
+  // run animation
+  animT = 0;
+  const canvas = document.getElementById('anim');
+  const ctx = canvas.getContext('2d');
+  runAnim(ctx, canvas, c.anim);
+}
+
+function stopAnim() {
+  if (animHandle) { cancelAnimationFrame(animHandle); animHandle = null; }
+}
+
+function runAnim(ctx, canvas, fn) {
+  const startTime = performance.now();
+  function frame(now) {
+    const t = (now - startTime) / 1000; // seconds
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    fn(ctx, canvas.width, canvas.height, t);
+    animHandle = requestAnimationFrame(frame);
+  }
+  animHandle = requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DRAWING HELPERS
+// ═══════════════════════════════════════════════════════════════════
+const C = {
+  blue:'#4f6ef7', purple:'#a78bfa', amber:'#f59e0b',
+  red:'#f87171', green:'#4ade80', teal:'#2dd4bf',
+  text:'#e2e8f0', sub:'#6b7280', bg:'#0a0f1a',
+  grid:'#111827'
+};
+
+function label(ctx, txt, x, y, size=13, color=C.text, align='center') {
+  ctx.save(); ctx.font=`${size}px -apple-system,sans-serif`;
+  ctx.fillStyle=color; ctx.textAlign=align; ctx.textBaseline='middle';
+  ctx.fillText(txt, x, y); ctx.restore();
+}
+function labelBold(ctx, txt, x, y, size=14, color=C.text) {
+  ctx.save(); ctx.font=`700 ${size}px -apple-system,sans-serif`;
+  ctx.fillStyle=color; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(txt, x, y); ctx.restore();
+}
+function arrow(ctx, x1,y1,x2,y2, color=C.sub, width=2, alpha=1) {
+  const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy);
+  if(len<2) return;
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=width; ctx.globalAlpha=alpha;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const angle=Math.atan2(dy,dx), as=8;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-as*Math.cos(angle-0.4),y2-as*Math.sin(angle-0.4));
+  ctx.lineTo(x2-as*Math.cos(angle+0.4),y2-as*Math.sin(angle+0.4));
+  ctx.closePath(); ctx.fillStyle=color; ctx.fill();
+  ctx.restore();
+}
+function roundRect(ctx, x,y,w,h,r,fill,stroke,alpha=1) {
+  ctx.save(); ctx.globalAlpha=alpha; ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+  if(fill){ctx.fillStyle=fill; ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke; ctx.lineWidth=1.5; ctx.stroke();}
+  ctx.restore();
+}
+function circle(ctx, x,y,r,fill,stroke,alpha=1) {
+  ctx.save(); ctx.globalAlpha=alpha; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  if(fill){ctx.fillStyle=fill; ctx.fill();}
+  if(stroke){ctx.strokeStyle=stroke; ctx.lineWidth=2; ctx.stroke();}
+  ctx.restore();
+}
+function easeInOut(t,d) { t=Math.min(1,t/d); return t<0.5?2*t*t:-1+(4-2*t)*t; }
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 1: STOCK — bathtub
+// ═══════════════════════════════════════════════════════════════════
+function animStock(ctx, W, H, t) {
+  const PERIOD = 8;
+  const T = t % PERIOD;
+  // fill 0→1 over 4s, drain 1→0.1 over 4s
+  let level;
+  if (T < 4) level = clamp(T/4, 0, 1);
+  else level = clamp(1 - (T-4)/4*0.9, 0.1, 1);
+
+  const bx=W/2-110, by=H/2-70, bw=220, bh=160;
+
+  // Tub outline
+  roundRect(ctx, bx,by,bw,bh,8, '#0d1527','#1e3a6e');
+
+  // Water fill
+  const wh = bh * level;
+  const waterY = by + bh - wh;
+  // Animated wave
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(bx+2, by+2, bw-4, bh-4);
+  ctx.clip();
+  ctx.beginPath();
+  ctx.moveTo(bx, waterY+4);
+  for(let x=0; x<=bw; x+=4) {
+    const wy = waterY + Math.sin((x/20 + t*2)*Math.PI*2)*4;
+    ctx.lineTo(bx+x, wy);
+  }
+  ctx.lineTo(bx+bw, by+bh);
+  ctx.lineTo(bx, by+bh);
+  ctx.closePath();
+  ctx.fillStyle = '#1a3a6e';
+  ctx.fill();
+  ctx.strokeStyle = '#3b5bdb88';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // Tub border on top
+  roundRect(ctx, bx,by,bw,bh,8, null,'#1e3a6e');
+
+  // Stock label
+  labelBold(ctx, 'STOCK', W/2, by+bh+22, 12, C.sub);
+  label(ctx, 'Market Share / Vehicle Count / Brand Equity', W/2, by+bh+40, 11, '#374151');
+
+  // Level indicator
+  const levelPct = Math.round(level*100);
+  labelBold(ctx, levelPct + '%', W/2, waterY + wh/2, 28, '#4f6ef7');
+  label(ctx, 'current stock level', W/2, waterY + wh/2 + 22, 11, '#3b5bdb');
+
+  // Inflow tap (top left)
+  const tapX = bx - 60, tapY = by + 30;
+  arrow(ctx, tapX, tapY, bx+20, tapY, C.green, 2.5);
+  if (T < 4) {
+    // Flow particles
+    for (let i = 0; i < 3; i++) {
+      const px = tapX + ((t*60 + i*30) % (bx+20-tapX));
+      circle(ctx, px, tapY, 4, C.green+'88', null, 0.7);
+    }
+  }
+  label(ctx, 'Inflow', tapX-30, tapY, 12, C.green);
+  label(ctx, T < 4 ? 'ON' : 'OFF', tapX-30, tapY+16, 10, T < 4 ? C.green : C.red);
+
+  // Outflow drain (bottom right)
+  const drainX = bx+bw+60, drainY = by+bh-30;
+  arrow(ctx, bx+bw-20, drainY, drainX, drainY, C.red, 2.5);
+  if (T >= 4) {
+    for (let i = 0; i < 3; i++) {
+      const px = bx+bw-20 + ((t*60 + i*30) % 80);
+      circle(ctx, px, drainY, 4, C.red+'88', null, 0.7);
+    }
+  }
+  label(ctx, 'Outflow', drainX+30, drainY, 12, C.red);
+  label(ctx, T >= 4 ? 'ON' : 'LOW', drainX+30, drainY+16, 10, T >= 4 ? C.red : '#374151');
+
+  // Title
+  labelBold(ctx, 'Stock accumulates over time', W/2, 32, 14, C.text);
+  label(ctx, 'Changes only as fast as flows allow — not instantaneously', W/2, 52, 12, C.sub);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 2: FLOW
+// ═══════════════════════════════════════════════════════════════════
+function animFlow(ctx, W, H, t) {
+  labelBold(ctx, 'Flows change stocks — you control the tap, not the level', W/2, 32, 14, C.text);
+  label(ctx, 'Changing a flow takes time to register in the stock', W/2, 52, 12, C.sub);
+
+  // Mini bathtub
+  const bx=W/2-70, by=H/2-50, bw=140, bh=120;
+  const PERIOD=10, T=t%PERIOD;
+  // Phase 0-3: high inflow. Phase 3-6: cut inflow. Phase 6-10: drain
+  let inRate, outRate;
+  if(T<3){inRate=1; outRate=0.3;}
+  else if(T<6){inRate=0.1; outRate=0.3;}
+  else {inRate=0.1; outRate=1;}
+
+  // Accumulated level
+  let level=0.5;
+  // Simulate simple accumulation
+  if(T<3) level = 0.5 + 0.5*(T/3);
+  else if(T<6) level = 1.0 - 0.3*((T-3)/3);
+  else level = 0.7 - 0.6*((T-6)/4);
+  level=clamp(level,0.05,1);
+
+  const wh=bh*level;
+  const waterY=by+bh-wh;
+  roundRect(ctx,bx,by,bw,bh,6,'#0d1527','#1e3a6e');
+  ctx.save(); ctx.beginPath(); ctx.rect(bx+2,by+2,bw-4,bh-4); ctx.clip();
+  ctx.beginPath(); ctx.moveTo(bx,waterY+3);
+  for(let x=0;x<=bw;x+=3) ctx.lineTo(bx+x, waterY+Math.sin((x/15+t*2.5)*Math.PI*2)*3);
+  ctx.lineTo(bx+bw,by+bh); ctx.lineTo(bx,by+bh); ctx.closePath();
+  ctx.fillStyle='#1a3a6e'; ctx.fill(); ctx.restore();
+  roundRect(ctx,bx,by,bw,bh,6,null,'#1e3a6e');
+  labelBold(ctx,Math.round(level*100)+'%',W/2,waterY+wh/2,22,C.blue);
+
+  // Flow arrows with thickness proportional to rate
+  const tapX=bx-80, tapY=by+30;
+  arrow(ctx,tapX,tapY,bx,tapY,C.green,1+inRate*6);
+  label(ctx,'Inflow',tapX-10,tapY-14,11,C.green);
+  label(ctx,'rate: '+inRate.toFixed(1),tapX-10,tapY+16,10,'#374151');
+  for(let i=0;i<3;i++){
+    const alpha=inRate*0.8;
+    const px=tapX+((t*50+i*25)%(bx-tapX));
+    circle(ctx,px,tapY,3+inRate*2,C.green+'66',null,alpha);
+  }
+
+  const drX=bx+bw+80, drY=by+bh-30;
+  arrow(ctx,bx+bw,drY,drX,drY,C.red,1+outRate*6);
+  label(ctx,'Outflow',drX+10,drY-14,11,C.red);
+  label(ctx,'rate: '+outRate.toFixed(1),drX+10,drY+16,10,'#374151');
+  for(let i=0;i<3;i++){
+    const alpha=outRate*0.8;
+    const px=bx+bw+((t*50+i*25)%80);
+    circle(ctx,px,drY,3+outRate*2,C.red+'66',null,alpha);
+  }
+
+  // Phase label
+  const phases=['Phase 1: High inflow — stock fills','Phase 2: Inflow cut — stock slowly drains','Phase 3: High outflow — stock drains fast'];
+  const ph=T<3?0:T<6?1:2;
+  const phColors=[C.green,C.amber,C.red];
+  roundRect(ctx,W/2-180,H-60,360,32,6,'#0d1527',phColors[ph]);
+  label(ctx,phases[ph],W/2,H-44,12,phColors[ph]);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 3: REINFORCING LOOP
+// ═══════════════════════════════════════════════════════════════════
+function animReinforce(ctx, W, H, t) {
+  labelBold(ctx,'Reinforcing Loop — self-amplifying growth',W/2,32,14,C.text);
+  label(ctx,'Each cycle makes the next one bigger',W/2,52,12,C.sub);
+
+  const cx=W/2, cy=H/2+10, R=130;
+  const nodes=[
+    {label:'More\nDevices', color:'#4f6ef7'},
+    {label:'More\nDevelopers', color:'#a78bfa'},
+    {label:'More\nApps', color:'#2dd4bf'},
+    {label:'Better\nPlatform', color:'#34d399'},
+  ];
+  const n=nodes.length;
+  const CYCLE=4; // seconds per cycle
+  const phase=(t%CYCLE)/CYCLE;
+
+  // Draw arrows between nodes
+  for(let i=0;i<n;i++){
+    const a1=(-Math.PI/2)+(i/n)*Math.PI*2;
+    const a2=(-Math.PI/2)+((i+1)/n)*Math.PI*2;
+    const x1=cx+Math.cos(a1)*R, y1=cy+Math.sin(a1)*R;
+    const x2=cx+Math.cos(a2)*R, y2=cy+Math.sin(a2)*R;
+    // Midpoint arc
+    const mx=cx+Math.cos((a1+a2)/2)*R*1.15;
+    const my=cy+Math.sin((a1+a2)/2)*R*1.15;
+    const isActive = Math.floor(phase*n)===i;
+    const arrowAlpha = isActive ? 1.0 : 0.35;
+    ctx.save();
+    ctx.globalAlpha=arrowAlpha;
+    ctx.strokeStyle=C.green;
+    ctx.lineWidth=isActive?3:1.5;
+    ctx.beginPath();
+    ctx.moveTo(x1,y1); ctx.quadraticCurveTo(mx,my,x2,y2);
+    ctx.stroke();
+    // arrowhead
+    const endAngle=Math.atan2(y2-my,x2-mx);
+    const as=9;
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-as*Math.cos(endAngle-0.4),y2-as*Math.sin(endAngle-0.4));
+    ctx.lineTo(x2-as*Math.cos(endAngle+0.4),y2-as*Math.sin(endAngle+0.4));
+    ctx.closePath(); ctx.fillStyle=C.green; ctx.fill();
+    // (+) label
+    const lx=(x1+x2)/2*0.5+mx*0.5, ly=(y1+y2)/2*0.5+my*0.5;
+    ctx.font='bold 12px sans-serif'; ctx.fillStyle=C.green; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('(+)',lx,ly);
+    ctx.restore();
+  }
+
+  // Draw nodes
+  for(let i=0;i<n;i++){
+    const a=(-Math.PI/2)+(i/n)*Math.PI*2;
+    const x=cx+Math.cos(a)*R, y=cy+Math.sin(a)*R;
+    const isActive=Math.floor(phase*n)===i;
+    const pulse=isActive?1+Math.sin(t*6)*0.06:1;
+    const r=36*pulse;
+    circle(ctx,x,y,r,nodes[i].color+'22',nodes[i].color+(isActive?'ff':'66'),isActive?1:0.7);
+    const lines=nodes[i].label.split('\n');
+    ctx.save(); ctx.font=`${isActive?'bold ':''} 11px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=isActive?C.text:'#9ca3af';
+    lines.forEach((l,j)=>ctx.fillText(l,x,y+(j-0.5)*14));
+    ctx.restore();
+  }
+
+  // Center R badge
+  const grow=1+Math.sin(t*1.5)*0.05;
+  circle(ctx,cx,cy,28*grow,'#0a0f1a','#4f6ef7');
+  labelBold(ctx,'R',cx,cy-1,20,C.blue);
+
+  // Growth spiral visualization at bottom
+  const barW=200, barH=16, bx=cx-barW/2, by=H-55;
+  label(ctx,'Cumulative growth each cycle:',cx,by-12,11,C.sub);
+  const cycles=[0.2,0.4,0.65,1.0];
+  cycles.forEach((v,i)=>{
+    const prog=clamp((phase*4-i),0,1);
+    roundRect(ctx,bx,by+i*0,barW,barH,3,'#111827','#1e2d45');
+    roundRect(ctx,bx,by,barW*v*prog,barH,3,C.blue+'33',C.blue+'88');
+  });
+  labelBold(ctx,'× '+((1+phase*1.5).toFixed(1)),cx+barW/2+24,by+barH/2,13,C.green);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 4: BALANCING LOOP
+// ═══════════════════════════════════════════════════════════════════
+function animBalance(ctx, W, H, t) {
+  labelBold(ctx,'Balancing Loop — seeks a goal',W/2,32,14,C.text);
+  label(ctx,'The system detects a gap and acts to close it',W/2,52,12,C.sub);
+
+  const PERIOD=8, T=t%PERIOD;
+  // Thermostat metaphor
+  const goal=0.6; // 60% target (temperature)
+  // Oscillating approach to goal
+  const decay=Math.exp(-T*0.5);
+  const actual=goal+(0.2*Math.cos(T*2)*decay+0.3*(1-clamp(T/4,0,1)));
+  const gap=goal-actual;
+
+  // Graph area
+  const gx=60, gy=90, gw=W-120, gh=200;
+  // axes
+  ctx.save();
+  ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx,gy+gh); ctx.lineTo(gx+gw,gy+gh); ctx.stroke();
+  // goal line
+  ctx.setLineDash([6,4]); ctx.strokeStyle=C.green+'88'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(gx,gy+gh*(1-goal)); ctx.lineTo(gx+gw,gy+gh*(1-goal)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+  label(ctx,'Goal',gx-28,gy+gh*(1-goal),11,C.green);
+
+  // Plot actual over time (last 8 seconds)
+  ctx.save(); ctx.strokeStyle=C.blue; ctx.lineWidth=2.5; ctx.beginPath();
+  for(let x=0;x<=gw;x++) {
+    const tt=(t-8+x/gw*8);
+    if(tt<0) continue;
+    const TT=tt%PERIOD;
+    const d=Math.exp(-TT*0.5);
+    const v=goal+(0.2*Math.cos(TT*2)*d+0.3*(1-clamp(TT/4,0,1)));
+    const vy=gy+gh*(1-clamp(v,0,1));
+    if(x===0||tt<0) ctx.moveTo(gx+x,vy);
+    else ctx.lineTo(gx+x,vy);
+  }
+  ctx.stroke(); ctx.restore();
+
+  // Current point
+  const curX=gx+gw, curY=gy+gh*(1-clamp(actual,0,1));
+  circle(ctx,curX,curY,6,C.blue,C.text);
+
+  // Gap arrow
+  const goalY=gy+gh*(1-goal);
+  if(Math.abs(gap)>0.02) {
+    arrow(ctx,curX+20,curY,curX+20,goalY,C.amber,2);
+    label(ctx,'gap',curX+38,(curY+goalY)/2,11,C.amber);
+  }
+
+  // Three nodes
+  const ny=H-100;
+  const nodes=[
+    {x:W*0.2,label:'Actual\nState',val:Math.round(actual*100)+'%',color:C.blue},
+    {x:W*0.5,label:'Desired\nGoal',val:Math.round(goal*100)+'%',color:C.green},
+    {x:W*0.8,label:'Corrective\nAction',val:Math.abs(gap)>0.02?'Active':'Idle',color:C.amber},
+  ];
+  nodes.forEach(n=>{
+    circle(ctx,n.x,ny,32,n.color+'22',n.color+'88');
+    const ls=n.label.split('\n');
+    ctx.save(); ctx.font='11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=C.text;
+    ls.forEach((l,i)=>ctx.fillText(l,n.x,ny-8+(i*14)));
+    labelBold(ctx,n.val,n.x,ny+14,10,n.color);
+    ctx.restore();
+  });
+  // Arrows between nodes (B loop)
+  arrow(ctx,nodes[0].x+36,ny,nodes[1].x-36,ny,C.sub,1.5);
+  arrow(ctx,nodes[1].x+36,ny,nodes[2].x-36,ny,C.sub,1.5);
+  arrow(ctx,nodes[2].x,ny-36,nodes[2].x-(nodes[2].x-nodes[0].x)*0.4,ny-60,C.sub,1.5);
+  arrow(ctx,nodes[2].x-(nodes[2].x-nodes[0].x)*0.4,ny-60,nodes[0].x,ny-36,C.sub,1.5);
+  // B badge
+  circle(ctx,W/2,ny-52,16,'#0a0f1a',C.red+'cc');
+  labelBold(ctx,'B',W/2,ny-52,14,C.red);
+
+  label(ctx,'Actual',gx+10,gy+10,11,C.blue);
+  label(ctx,'Goal (target)',gx+gw-50,gy+gh*(1-goal)-12,11,C.green);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 5: DELAY — 3-scene: short delay / long delay / compare
+// ═══════════════════════════════════════════════════════════════════
+function animDelay(ctx, W, H, t) {
+  const TOTAL = 26;
+  const T = t % TOTAL;
+  const S1 = 10, S2 = 22;
+
+  // ── scene dots ─────────────────────────────────────────────────
+  const sceneDots=[
+    {lbl:'① Short Delay',col:C.blue},
+    {lbl:'② Long Delay (Nokia)',col:C.red},
+    {lbl:'③ Compare',col:C.green},
+  ];
+  const sceneIdx = T<S1?0:T<S2?1:2;
+  let dx=W/2-195;
+  sceneDots.forEach((d,i)=>{
+    const act=i===sceneIdx;
+    circle(ctx,dx,H-14,act?5:3,act?d.col:'#374151',null);
+    label(ctx,d.lbl,dx+8,H-14,12,act?d.col:'#374151','left');
+    dx+=136;
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SCENE 1 — Short Delay: Thermostat (0-10s)
+  // ══════════════════════════════════════════════════════════════
+  if (T < S1) {
+    const lt = T;
+
+    labelBold(ctx,'DELAY — Short vs. Long',W/2,26,16,C.text);
+    roundRect(ctx,W/2-200,42,400,30,7,C.blue+'1a',C.blue+'88');
+    labelBold(ctx,'① SHORT DELAY — Thermostat  (delay ≈ 2 minutes)',W/2,57,13,C.blue);
+
+    const gx=65, gy=84, gw=W-130, gh=138;
+    ctx.save(); ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx,gy+gh); ctx.lineTo(gx+gw,gy+gh); ctx.stroke();
+    ctx.restore();
+
+    // Goal line 20°C
+    const goalY=gy+gh*0.5;
+    ctx.save(); ctx.strokeStyle=C.green+'55'; ctx.lineWidth=1.5; ctx.setLineDash([7,4]);
+    ctx.beginPath(); ctx.moveTo(gx,goalY); ctx.lineTo(gx+gw,goalY); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+    label(ctx,'Target: 20°C',gx-6,goalY,12,C.green,'right');
+
+    function tempAt(gm) {
+      if(gm<2) return 0.5;
+      if(gm<3) return 0.5-(gm-2)*0.28;
+      if(gm<4) return 0.22;
+      if(gm<6) return 0.22+(gm-4)*0.22;
+      if(gm<7) return 0.66+(gm-6)*0.12;
+      return 0.78-(gm-7)*0.045;
+    }
+
+    const drawPx=clamp((lt-1)/8*gw,0,gw);
+    ctx.save(); ctx.strokeStyle=C.blue; ctx.lineWidth=2.5; ctx.beginPath();
+    for(let x=0;x<=drawPx;x++){
+      const gm=x/gw*10, v=tempAt(gm);
+      const vy=gy+gh*(1-v)-5;
+      x===0?ctx.moveTo(gx+x,vy):ctx.lineTo(gx+x,vy);
+    }
+    ctx.stroke(); ctx.restore();
+
+    if(drawPx>1){
+      const curGm=drawPx/gw*10, curV=tempAt(curGm);
+      const curX=gx+drawPx, curY=gy+gh*(1-curV)-5;
+      circle(ctx,curX,curY,6,C.blue,C.text);
+      label(ctx,Math.round(17+curV*6)+'°C',curX+11,curY,13,C.blue,'left');
+    }
+
+    // Event marker lines (dashed vertical)
+    if(lt>2.5){
+      const ex=gx+2/10*gw;
+      ctx.save(); ctx.strokeStyle=C.teal+'44'; ctx.lineWidth=1.2; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(ex,gy); ctx.lineTo(ex,gy+gh); ctx.stroke(); ctx.restore();
+    }
+    if(lt>4){
+      const ex=gx+4/10*gw;
+      ctx.save(); ctx.strokeStyle=C.amber+'44'; ctx.lineWidth=1.2; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(ex,gy); ctx.lineTo(ex,gy+gh); ctx.stroke(); ctx.restore();
+    }
+
+    // Event labels — placed INSIDE graph near the bottom (above x-axis)
+    if(lt>2.5){
+      label(ctx,'❄ Cold snap',gx+2/10*gw,gy+gh-20,12,'#93c5fd');
+    }
+    if(lt>4){
+      label(ctx,'🔥 Heater fires',gx+4/10*gw,gy+gh-38,12,C.amber);
+    }
+
+    // Overshoot annotation (inside graph)
+    if(lt>6.6){
+      const ox=gx+7/10*gw, ov=tempAt(7), oy=gy+gh*(1-ov)-5;
+      circle(ctx,ox,oy,7,C.amber+'66',C.amber);
+      label(ctx,'Overshoot: 22°C',ox+14,oy,13,C.amber,'left');
+    }
+
+    // Damped oscillation note (inside graph, upper area)
+    if(lt>7){
+      const alpha=clamp((lt-7)*2,0,1);
+      ctx.save(); ctx.globalAlpha=alpha;
+      label(ctx,'Damped oscillation — system returns to target',gx+gw*0.6,gy+16,12,C.sub);
+      ctx.restore();
+    }
+
+    // x-axis minute labels (below graph)
+    [0,2,4,6,8,10].forEach(m=>{
+      label(ctx,m+'min',gx+m/10*gw,gy+gh+10,11,C.sub);
+    });
+    label(ctx,'Time →',gx+gw+8,gy+gh,11,C.sub,'left');
+    label(ctx,'°C',gx-8,gy-5,11,C.sub,'right');
+
+    // SHORT DELAY indicator bar (below x-axis labels)
+    if(lt>3.5){
+      const x1=gx+2/10*gw, x2=gx+4/10*gw;
+      const by=gy+gh+28;
+      roundRect(ctx,x1,by,x2-x1,24,5,C.purple+'25',C.purple+'88');
+      labelBold(ctx,'SHORT DELAY: ~2 min',( x1+x2)/2,by+12,13,C.purple);
+      label(ctx,'cold snap detected  →  heater fires',(x1+x2)/2,by+32,11,C.sub);
+    }
+
+    // Outcome badge
+    if(lt>8.2){
+      const alpha=clamp((lt-8.2)*3,0,1);
+      ctx.save(); ctx.globalAlpha=alpha;
+      roundRect(ctx,W/2-135,H-76,270,46,8,C.green+'18',C.green+'77');
+      labelBold(ctx,'✓  OUTCOME: STABLE',W/2,H-60,14,C.green);
+      label(ctx,'Minor oscillation → equilibrium quickly restored',W/2,H-44,12,C.green);
+      ctx.restore();
+    }
+
+  // ══════════════════════════════════════════════════════════════
+  // SCENE 2 — Long Delay: Nokia (10-22s)
+  // ══════════════════════════════════════════════════════════════
+  } else if (T < S2) {
+    const lt=T-S1;
+
+    labelBold(ctx,'DELAY — Short vs. Long',W/2,26,16,C.text);
+    roundRect(ctx,W/2-220,42,440,30,7,C.red+'1a',C.red+'88');
+    labelBold(ctx,'② LONG DELAY — Nokia  (3 stacked delays = ~6 years total)',W/2,57,13,C.red);
+
+    function share(yr) {
+      if(yr<0.5) return 0.93;
+      return clamp(0.93*Math.pow(1-yr*0.145,2.5),0.04,0.93);
+    }
+
+    const gx=65, gy=78, gw=W-130, gh=108;
+    const YEARS=8;
+
+    ctx.save(); ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx,gy+gh); ctx.lineTo(gx+gw,gy+gh); ctx.stroke();
+    ctx.restore();
+
+    [0,25,50].forEach(v=>{
+      const y=gy+gh*(1-(v/55)*0.92);
+      ctx.save(); ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(gx,y); ctx.lineTo(gx+gw,y); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+      label(ctx,v+'%',gx-6,y,11,C.sub,'right');
+    });
+
+    const drawPx=clamp((lt-1)/8*gw,0,gw);
+    ctx.save(); ctx.strokeStyle=C.blue; ctx.lineWidth=2.5; ctx.beginPath();
+    for(let x=0;x<=drawPx;x++){
+      const yr=x/gw*YEARS, v=share(yr);
+      const vy=gy+gh*(1-v*0.92);
+      x===0?ctx.moveTo(gx+x,vy):ctx.lineTo(gx+x,vy);
+    }
+    ctx.stroke(); ctx.restore();
+
+    if(drawPx>1){
+      const curYr=drawPx/gw*YEARS, curV=share(curYr);
+      const curX=gx+drawPx, curY=gy+gh*(1-curV*0.92);
+      circle(ctx,curX,curY,6,C.blue,C.text);
+      label(ctx,Math.round(curV*55)+'%',curX+10,curY,13,C.blue,'left');
+    }
+
+    ['2006','2007','2008','2009','2010','2011','2012','2013'].forEach((yr,i)=>{
+      label(ctx,yr,gx+i/7*gw,gy+gh+10,11,C.sub);
+    });
+    label(ctx,'Nokia Global Market Share',gx+6,gy+14,12,C.blue,'left');
+
+    // "Point of no return" zone on graph
+    if(lt>7){
+      const alpha=clamp((lt-7)*1.5,0,1)*0.18;
+      const prX=gx+4/YEARS*gw;
+      ctx.save(); ctx.globalAlpha=alpha; ctx.fillStyle=C.red;
+      ctx.fillRect(prX,gy,gw-(prX-gx),gh); ctx.restore();
+      ctx.save(); ctx.globalAlpha=clamp((lt-7)*1.5,0,1);
+      label(ctx,'Point of No Return →',prX+8,gy+16,12,C.red,'left');
+      ctx.restore();
+    }
+
+    // ── THREE STACKED DELAY ROWS ───────────────────────────────
+    const delayY0=gy+gh+24;  // first row starts here (y=210)
+    const rowH=24, rowGap=24; // each row+gap = 48px
+
+    const delays=[
+      {
+        name:'① Perception Delay  (2007–2009)',
+        sub:'Fear culture filtered bad news upward — engineers knew but leadership did not',
+        from:1,to:3,color:C.amber,lt_show:4
+      },
+      {
+        name:'② Response Delay  (2009–2011)',
+        sub:'Committees debated strategy for 2 years — "burning platform" memo came too late',
+        from:3,to:5,color:C.purple,lt_show:6
+      },
+      {
+        name:'③ Impact Delay  (2011–2013)',
+        sub:'New smartphone takes 2 years to design, manufacture, and reach the market',
+        from:5,to:7,color:C.red,lt_show:8
+      },
+    ];
+
+    delays.forEach((d,i)=>{
+      if(lt<d.lt_show) return;
+      const alpha=clamp((lt-d.lt_show)*2.5,0,1);
+      const ry=delayY0+i*(rowH+rowGap);
+      const x1=gx+d.from/YEARS*gw, x2=gx+d.to/YEARS*gw;
+
+      ctx.save(); ctx.globalAlpha=alpha;
+      // delay bar
+      roundRect(ctx,x1,ry,x2-x1,rowH,4,d.color+'22',d.color+'77');
+      labelBold(ctx,d.name,(x1+x2)/2,ry+rowH/2,12,d.color);
+      // sub text below the bar
+      label(ctx,d.sub,(x1+x2)/2,ry+rowH+12,10,C.sub);
+      // vertical connector from graph x-axis to row top
+      ctx.strokeStyle=d.color+'44'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(x1,gy+gh); ctx.lineTo(x1,ry); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x2,gy+gh); ctx.lineTo(x2,ry); ctx.stroke();
+      ctx.setLineDash([]); ctx.restore();
+    });
+
+    // Total delay span
+    if(lt>9){
+      const alpha=clamp((lt-9)*2,0,1);
+      const x1=gx+1/YEARS*gw, x2=gx+7/YEARS*gw;
+      const row2y=delayY0+2*(rowH+rowGap);
+      const by=row2y+rowH+22;
+      ctx.save(); ctx.globalAlpha=alpha; ctx.strokeStyle=C.red; ctx.lineWidth=2.5;
+      ctx.beginPath();
+      ctx.moveTo(x1,by-5); ctx.lineTo(x1,by+5);
+      ctx.moveTo(x1,by); ctx.lineTo(x2,by);
+      ctx.moveTo(x2,by-5); ctx.lineTo(x2,by+5);
+      ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.globalAlpha=alpha;
+      labelBold(ctx,'TOTAL DELAY: ~6 years',(x1+x2)/2,by+16,14,C.red);
+      label(ctx,'Signal visible in 2007 — meaningful market response arrived in 2013',(x1+x2)/2,by+32,11,C.sub);
+      ctx.restore();
+    }
+
+  // ══════════════════════════════════════════════════════════════
+  // SCENE 3 — Comparison (22-26s)
+  // ══════════════════════════════════════════════════════════════
+  } else {
+    const lt=T-S2;
+    const alpha=clamp(lt*2,0,1);
+
+    labelBold(ctx,'Same system structure — different delay length → completely different outcome',W/2,28,14,C.text);
+
+    const mw=245, mh=130, gap=36;
+    const lx=W/2-mw-gap/2, rx=W/2+gap/2, my=54;
+
+    // Left: short delay mini graph
+    ctx.save(); ctx.globalAlpha=alpha;
+    roundRect(ctx,lx,my,mw,mh,10,C.blue+'0f',C.blue+'55');
+    ctx.strokeStyle=C.blue; ctx.lineWidth=2; ctx.beginPath();
+    for(let x=0;x<mw-20;x++){
+      const xt=x/(mw-20)*8;
+      const v=0.5+Math.sin(xt*1.8)*Math.exp(-xt*0.7)*0.3;
+      const vy=my+mh*(1-v*0.82)-6;
+      x===0?ctx.moveTo(lx+10+x,vy):ctx.lineTo(lx+10+x,vy);
+    }
+    ctx.stroke();
+    ctx.strokeStyle=C.green+'55'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(lx+10,my+mh*0.5-6); ctx.lineTo(lx+mw-10,my+mh*0.5-6); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    ctx.save(); ctx.globalAlpha=alpha;
+    roundRect(ctx,lx,my+mh+10,mw,62,8,C.blue+'18',C.blue+'44');
+    labelBold(ctx,'SHORT DELAY',lx+mw/2,my+mh+23,14,C.blue);
+    label(ctx,'Thermostat / Price signals',lx+mw/2,my+mh+39,12,C.sub);
+    label(ctx,'Seconds → minutes',lx+mw/2,my+mh+54,12,C.sub);
+    roundRect(ctx,lx+mw/2-64,my+mh+66,128,26,6,C.green+'22',C.green+'66');
+    labelBold(ctx,'✓  Oscillates → Stable',lx+mw/2,my+mh+79,13,C.green);
+    ctx.restore();
+
+    // Right: long delay mini graph
+    ctx.save(); ctx.globalAlpha=alpha;
+    roundRect(ctx,rx,my,mw,mh,10,C.red+'0f',C.red+'55');
+    ctx.strokeStyle=C.red; ctx.lineWidth=2; ctx.beginPath();
+    for(let x=0;x<mw-20;x++){
+      const xt=x/(mw-20)*7;
+      const v=0.9*Math.pow(1-xt/8,2.5);
+      const vy=my+mh*(1-Math.max(0,v)*0.85)-6;
+      x===0?ctx.moveTo(rx+10+x,vy):ctx.lineTo(rx+10+x,vy);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save(); ctx.globalAlpha=alpha;
+    roundRect(ctx,rx,my+mh+10,mw,62,8,C.red+'18',C.red+'44');
+    labelBold(ctx,'LONG DELAY',rx+mw/2,my+mh+23,14,C.red);
+    label(ctx,'Nokia / Policy / Infrastructure',rx+mw/2,my+mh+39,12,C.sub);
+    label(ctx,'Months → years',rx+mw/2,my+mh+54,12,C.sub);
+    roundRect(ctx,rx+mw/2-70,my+mh+66,140,26,6,C.red+'22',C.red+'66');
+    labelBold(ctx,'✗  Overcorrects → Collapse',rx+mw/2,my+mh+79,13,C.red);
+    ctx.restore();
+
+    // VS divider
+    ctx.save(); ctx.globalAlpha=alpha;
+    circle(ctx,W/2,my+mh/2,20,'#0f1624',C.sub+'55');
+    labelBold(ctx,'VS',W/2,my+mh/2,13,C.sub);
+    ctx.restore();
+
+    // Meadows quote
+    if(lt>1.5){
+      const qa=clamp((lt-1.5)*3,0,1);
+      ctx.save(); ctx.globalAlpha=qa;
+      roundRect(ctx,W/2-245,H-76,490,58,10,'#0d1527',C.amber+'44');
+      labelBold(ctx,'"Delays are pervasive in systems and almost always destabilizing."',W/2,H-59,14,C.amber);
+      label(ctx,'— Donella Meadows, Thinking in Systems',W/2,H-41,13,C.amber);
+      label(ctx,'Strategic insight: reducing delays often matters MORE than changing any parameter',W/2,H-24,11,C.sub);
+      ctx.restore();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 6: TIPPING POINTS
+// ═══════════════════════════════════════════════════════════════════
+function animTipping(ctx, W, H, t) {
+  labelBold(ctx,'Tipping Point — small push, massive shift',W/2,32,14,C.text);
+  label(ctx,'Systems resist change until a critical threshold is crossed',W/2,52,12,C.sub);
+
+  const gx=60, gy=75, gw=W-120, gh=210;
+  ctx.save(); ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx,gy+gh); ctx.lineTo(gx+gw,gy+gh); ctx.stroke();
+  ctx.restore();
+
+  // S-curve: sigmoid
+  function sigmoid(x) { return 1/(1+Math.exp(-8*(x-0.5))); }
+
+  // Draw S-curve
+  ctx.save(); ctx.strokeStyle=C.purple; ctx.lineWidth=3; ctx.beginPath();
+  for(let x=0;x<=gw;x++) {
+    const v=sigmoid(x/gw);
+    const vy=gy+gh*(1-v*0.9)-8;
+    if(x===0) ctx.moveTo(gx+x,vy); else ctx.lineTo(gx+x,vy);
+  }
+  ctx.stroke(); ctx.restore();
+
+  // Animate ball rolling along curve
+  const PERIOD=8, tt=(t%PERIOD)/PERIOD;
+  const bx=gx+tt*gw;
+  const bv=sigmoid(tt);
+  const by2=gy+gh*(1-bv*0.9)-8;
+  circle(ctx,bx,by2,8,C.amber,C.text);
+
+  // Tipping point line
+  const tipX=gx+0.5*gw;
+  ctx.save(); ctx.strokeStyle=C.red+'aa'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(tipX,gy); ctx.lineTo(tipX,gy+gh); ctx.stroke();
+  ctx.setLineDash([]); ctx.restore();
+  label(ctx,'TIPPING POINT',tipX,gy-8,11,C.red);
+
+  // Zone labels
+  label(ctx,'Slow growth\n(resistance)',gx+gw*0.2,gy+gh*0.85,11,C.sub);
+  label(ctx,'Rapid shift\n(R loop dominates)',gx+gw*0.75,gy+gh*0.15,11,C.green);
+
+  // Slope indicator
+  const deriv=bv*(1-bv)*8;
+  const barH=20, barW=Math.min(deriv/2*80,180);
+  label(ctx,'Growth speed:',gx,H-50,11,C.sub,'left');
+  roundRect(ctx,gx+90,H-62,180,barH,4,'#111827','#1e2d45');
+  roundRect(ctx,gx+90,H-62,barW,barH,4,C.purple+'55',C.purple+'aa');
+  labelBold(ctx,(deriv*100).toFixed(0)+'%/step',gx+90+barW+8,H-52,11,C.purple,'left');
+
+  // Android app count annotation
+  const years=[{x:0.15,label:'2008\n500 apps'},{x:0.45,label:'2011\n250K apps'},{x:0.8,label:'2013\n1M+ apps'}];
+  years.forEach(y=>{
+    const yx=gx+y.x*gw;
+    const yv=sigmoid(y.x);
+    const yy=gy+gh*(1-yv*0.9)-8;
+    circle(ctx,yx,yy,5,C.teal,C.teal);
+    const ls=y.label.split('\n');
+    ctx.save(); ctx.font='9px sans-serif'; ctx.fillStyle=C.teal; ctx.textAlign='center';
+    ls.forEach((l,i)=>ctx.fillText(l,yx,yy+18+i*11)); ctx.restore();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 7: FIXES THAT FAIL
+// ═══════════════════════════════════════════════════════════════════
+function animFTF(ctx, W, H, t) {
+  labelBold(ctx,'Fixes That Fail — the trap of symptomatic solutions',W/2,32,14,C.text);
+  label(ctx,'The fix works briefly — then the problem returns worse',W/2,52,12,C.sub);
+
+  const gx=55, gy=75, gw=W-110, gh=180;
+  ctx.save(); ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx,gy+gh); ctx.lineTo(gx+gw,gy+gh); ctx.stroke();
+  ctx.restore();
+
+  // Problem level: rises, is fixed (drops), then rises again higher, fixed again, rises even more
+  function problemLevel(tt) {
+    // Sawtooth with increasing baseline
+    if(tt<1.5) return 0.2+tt*0.4;
+    if(tt<2.5) return 0.8-0.5*(tt-1.5); // fix applied
+    if(tt<4.5) return 0.3+(tt-2.5)*0.45;
+    if(tt<5.5) return 1.2-0.6*(tt-4.5);
+    if(tt<7.5) return 0.6+(tt-5.5)*0.5;
+    return 1.6-0.8*(tt-7.5);
+  }
+
+  const TMAX=10;
+  ctx.save(); ctx.strokeStyle=C.red; ctx.lineWidth=2.5; ctx.beginPath();
+  for(let x=0;x<=gw;x++) {
+    const v=Math.max(0,Math.min(1,problemLevel(x/gw*TMAX)/2));
+    const vy=gy+gh*(1-v);
+    if(x===0) ctx.moveTo(gx+x,vy); else ctx.lineTo(gx+x,vy);
+  }
+  ctx.stroke(); ctx.restore();
+
+  // Fix markers
+  const fixes=[{t:1.5,label:'Fix 1\nRoad built'},{t:4.5,label:'Fix 2\nMore roads'},{t:7.5,label:'Fix 3\nEven more roads'}];
+  fixes.forEach(f=>{
+    const fx=gx+f.t/TMAX*gw;
+    ctx.save(); ctx.strokeStyle=C.green+'88'; ctx.lineWidth=2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(fx,gy); ctx.lineTo(fx,gy+gh); ctx.stroke(); ctx.restore();
+    const ls=f.label.split('\n');
+    ls.forEach((l,i)=>label(ctx,l,fx,gy+gh+22+i*13,10,C.green));
+    // arrow pointing down
+    arrow(ctx,fx,gy+gh*0.05,fx,gy+gh*0.05+20,C.green,2);
+  });
+
+  // Cursor + current value
+  const TT=(t%TMAX);
+  const curX=gx+TT/TMAX*gw;
+  const curV=Math.max(0,Math.min(1,problemLevel(TT)/2));
+  circle(ctx,curX,gy+gh*(1-curV),7,C.red,C.text);
+
+  // Rising baseline annotation
+  ctx.save(); ctx.strokeStyle=C.amber+'88'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(gx,gy+gh*0.85); ctx.lineTo(gx+gw,gy+gh*0.1); ctx.stroke();
+  ctx.restore();
+  label(ctx,'Rising baseline problem',gx+gw-80,gy+gh*0.08,11,C.amber,'right');
+
+  // Side effect arrow
+  label(ctx,'Problem level',gx+4,gy+10,11,C.red,'left');
+  label(ctx,'(e.g. Beijing congestion index)',gx+4,gy+23,10,'#374151','left');
+
+  // Delay annotation
+  label(ctx,'delayed\nside effect',gx+gw*0.35,gy+gh*0.55,10,C.amber);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 8: SHIFTING THE BURDEN
+// ═══════════════════════════════════════════════════════════════════
+function animSTB(ctx, W, H, t) {
+  labelBold(ctx,'Shifting the Burden — symptomatic fix crowds out real solution',W/2,32,14,C.text);
+  label(ctx,'The more the quick fix works, the less the real fix is developed',W/2,52,12,C.sub);
+
+  const PERIOD=8, T=t%PERIOD;
+  const progress=clamp(T/PERIOD,0,1);
+
+  // Two bars: symptomatic investment growing, fundamental shrinking
+  const sympW=clamp(progress*260,20,260);
+  const fundW=clamp(260-progress*200,20,260);
+
+  const bx=W/2-130, bw=260, bh=36, gap=24;
+  const sy=H/2-30, fy=H/2+30;
+
+  // Symptomatic
+  roundRect(ctx,bx,sy,bw,bh,6,'#111827','#1e2d45');
+  roundRect(ctx,bx,sy,sympW,bh,6,C.red+'33',C.red+'aa');
+  label(ctx,'Symptomatic Fix (Nokia: hardware upgrades, marketing)',W/2,sy-14,11,C.red);
+  label(ctx,Math.round(sympW/2.6)+'% investment',bx+sympW/2,sy+bh/2,12,C.red);
+
+  // Fundamental
+  roundRect(ctx,bx,fy,bw,bh,6,'#111827','#1e2d45');
+  roundRect(ctx,bx,fy,fundW,bh,6,C.green+'33',C.green+'aa');
+  label(ctx,'Fundamental Fix (Nokia: rewrite Symbian platform)',W/2,fy-14,11,C.green);
+  label(ctx,Math.round(fundW/2.6)+'% investment',bx+fundW/2,fy+bh/2,12,C.green);
+
+  // Fundamental problem box
+  const fpx=W/2-90, fpy=H/2+110, fpw=180, fph=36;
+  roundRect(ctx,fpx,fpy,fpw,fph,8,'#1a1020',C.red+'88');
+  label(ctx,'Fundamental Problem',W/2,fpy+18,12,C.red);
+
+  // Arrows
+  // Symptomatic → problem (relieves)
+  arrow(ctx,W/2,sy+bh,W/2,fpy,C.red+'66',1.5);
+  label(ctx,'relieves (short-term)',W/2+70,H/2+75,10,C.red);
+
+  // Fundamental → problem (solves)
+  // (would solve if funded)
+  ctx.save(); ctx.globalAlpha=fundW/260*0.8;
+  arrow(ctx,W/2,fy+bh,W/2,fpy,C.green+'66',1.5);
+  ctx.restore();
+  label(ctx,'solves (if funded)',W/2-80,H/2+75,10,C.green);
+
+  // Side effect: symptomatic crowds out fundamental
+  const arrowAlpha=clamp((sympW-80)/180,0,0.8);
+  ctx.save(); ctx.globalAlpha=arrowAlpha;
+  arrow(ctx,bx+sympW,sy+bh/2,bx+fundW,fy+bh/2,C.amber,2);
+  ctx.restore();
+  if(arrowAlpha>0.2) label(ctx,'crowds out →',bx+sympW+10,H/2,10,C.amber,'left');
+
+  // Time label
+  label(ctx,'Time →',gx,H-28,11,C.sub,'left');
+  const timeX=W/2;
+  label(ctx,T.toFixed(1)+'s',timeX,H-28,11,C.sub);
+}
+const gx=55; // reuse for STB
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 9: LIMITS TO GROWTH
+// ═══════════════════════════════════════════════════════════════════
+function animLTG(ctx, W, H, t) {
+  const TOTAL = 24;
+  const T = t % TOTAL;
+  const S1 = 12;
+
+  // helper: logistic S-curve (v 0→1 over YEARS years)
+  function logistic(yr, YEARS=10, r=0.65) {
+    const N0=0.012;
+    return 1 / (1 + ((1-N0)/N0)*Math.exp(-r*yr));
+  }
+
+  // scene indicator dots
+  const scenes=[
+    {lbl:'① Ecology: Rabbit Population', col:C.green},
+    {lbl:'② Business: Startup Growth', col:C.blue}
+  ];
+  const si = T<S1 ? 0 : 1;
+  let ddx = W/2-175;
+  scenes.forEach((s,i)=>{
+    const act=i===si;
+    circle(ctx,ddx,H-14,act?5:3,act?s.col:'#374151',null);
+    label(ctx,s.lbl,ddx+8,H-14,12,act?s.col:'#374151','left');
+    ddx+=190;
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  // SCENE 1 — RABBIT POPULATION  (0-12s)
+  // ══════════════════════════════════════════════════════════════
+  if (T < S1) {
+    const lt = T;
+
+    labelBold(ctx,'LIMITS TO GROWTH',W/2,26,16,C.text);
+    roundRect(ctx,W/2-215,42,430,30,7,C.green+'1a',C.green+'88');
+    labelBold(ctx,'① ECOLOGY — Rabbit Population  (carrying capacity = food + space)',W/2,57,13,C.green);
+
+    const gx=65, gy=82, gw=W-130, gh=148;
+    const YEARS=10;
+    // capY = y-coordinate of carrying capacity K (near top of graph)
+    const capY = gy + 12;
+    const botY = gy + gh;
+    // plotY: maps v=0→botY, v=1→capY
+    function plotY(v){ return botY - v*(botY-capY); }
+
+    // Axes
+    ctx.save(); ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx,botY); ctx.lineTo(gx+gw,botY); ctx.stroke();
+    ctx.restore();
+
+    // Carrying capacity (K) dashed line
+    ctx.save(); ctx.strokeStyle=C.red+'77'; ctx.lineWidth=1.5; ctx.setLineDash([8,5]);
+    ctx.beginPath(); ctx.moveTo(gx,capY); ctx.lineTo(gx+gw,capY); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+    label(ctx,'K = Carrying Capacity (max food & space)',gx+8,capY-9,12,C.red,'left');
+
+    // Horizontal gridline at 50%
+    const midY = plotY(0.5);
+    ctx.save(); ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(gx,midY); ctx.lineTo(gx+gw,midY); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+    label(ctx,'500',gx-6,midY,11,C.sub,'right');
+    label(ctx,'1000',gx-6,capY,11,C.sub,'right');
+    label(ctx,'0',gx-6,botY,11,C.sub,'right');
+    label(ctx,'Rabbits →',gx-10,gy+gh/2,11,C.sub,'right');
+
+    // Animated S-curve
+    const drawPx=clamp((lt-0.5)/10*gw,0,gw);
+    ctx.save(); ctx.strokeStyle=C.green; ctx.lineWidth=3; ctx.beginPath();
+    for(let x=0;x<=drawPx;x++){
+      const yr=x/gw*YEARS, v=logistic(yr,YEARS);
+      const vy=plotY(v);
+      x===0?ctx.moveTo(gx+x,vy):ctx.lineTo(gx+x,vy);
+    }
+    ctx.stroke(); ctx.restore();
+
+    // Moving dot + population count
+    if(drawPx>1){
+      const curYr=drawPx/gw*YEARS, curV=logistic(curYr,YEARS);
+      const curX=gx+drawPx, curY=plotY(curV);
+      circle(ctx,curX,curY,6,C.green,C.text);
+      label(ctx,Math.round(curV*1000)+' rabbits',curX+10,curY,13,C.green,'left');
+    }
+
+    // Phase 1 box: R loop dominant (appears at lt>2)
+    if(lt>2){
+      const alpha=clamp((lt-2)*1.5,0,1);
+      ctx.save(); ctx.globalAlpha=alpha;
+      roundRect(ctx,gx+14,botY-110,210,50,8,C.green+'18',C.green+'55');
+      labelBold(ctx,'(R) Birth Loop — dominant',gx+14+105,botY-96,12,C.green);
+      label(ctx,'Each rabbit produces offspring →',gx+14+105,botY-80,11,C.sub);
+      label(ctx,'more rabbits → more births (exponential!)',gx+14+105,botY-66,11,C.sub);
+      ctx.restore();
+    }
+
+    // Phase 2 box: B loop tightens (appears at lt>6)
+    if(lt>6){
+      const alpha=clamp((lt-6)*1.5,0,1);
+      ctx.save(); ctx.globalAlpha=alpha;
+      roundRect(ctx,gx+gw-222,capY+18,218,52,8,C.red+'18',C.red+'55');
+      labelBold(ctx,'(B) Scarcity Loop — tightens',gx+gw-222+109,capY+32,12,C.red);
+      label(ctx,'Too many rabbits → grass depletes →',gx+gw-222+109,capY+46,11,C.sub);
+      label(ctx,'less food → births fall, deaths rise',gx+gw-222+109,capY+60,11,C.sub);
+      ctx.restore();
+    }
+
+    // Inflection point marker
+    if(lt>5){
+      const alpha=clamp((lt-5)*2,0,1);
+      const infYr=3.5, infV=logistic(infYr,YEARS);
+      const infX=gx+infYr/YEARS*gw, infY=plotY(infV);
+      ctx.save(); ctx.globalAlpha=alpha;
+      circle(ctx,infX,infY,6,C.amber,C.amber);
+      label(ctx,'Growth slows here',infX+10,infY-14,12,C.amber,'left');
+      label(ctx,'(B loop begins to dominate)',infX+10,infY+2,11,C.sub,'left');
+      ctx.restore();
+    }
+
+    // x-axis labels
+    [0,2,4,6,8,10].forEach(yr=>{
+      label(ctx,'Yr '+yr,gx+yr/YEARS*gw,botY+10,11,C.sub);
+    });
+    label(ctx,'Time (years) →',gx+gw+8,botY,11,C.sub,'left');
+
+    // Outcome
+    if(lt>9.5){
+      const alpha=clamp((lt-9.5)*3,0,1);
+      ctx.save(); ctx.globalAlpha=alpha;
+      roundRect(ctx,W/2-180,H-72,360,46,8,C.green+'18',C.green+'77');
+      labelBold(ctx,'Result: S-curve → Equilibrium near K',W/2,H-56,14,C.green);
+      label(ctx,'Growth always encounters a limit — the question is WHEN and HOW HARD',W/2,H-39,11,C.sub);
+      ctx.restore();
+    }
+
+  // ══════════════════════════════════════════════════════════════
+  // SCENE 2 — STARTUP GROWTH: Ride-hailing  (12-24s)
+  // ══════════════════════════════════════════════════════════════
+  } else {
+    const lt = T - S1;
+
+    labelBold(ctx,'LIMITS TO GROWTH',W/2,26,16,C.text);
+    roundRect(ctx,W/2-235,42,470,30,7,C.blue+'1a',C.blue+'88');
+    labelBold(ctx,'② BUSINESS — Ride-hailing App Growth  (driver supply = the constraint)',W/2,57,13,C.blue);
+
+    const gx=65, gy=82, gw=W-130, gh=148;
+    const YEARS=10;
+    const capY = gy+12;
+    const botY = gy+gh;
+    function plotY(v){ return botY - v*(botY-capY); }
+
+    // Axes
+    ctx.save(); ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx,botY); ctx.lineTo(gx+gw,botY); ctx.stroke();
+    ctx.restore();
+
+    // Market saturation line (K equivalent)
+    ctx.save(); ctx.strokeStyle=C.red+'77'; ctx.lineWidth=1.5; ctx.setLineDash([8,5]);
+    ctx.beginPath(); ctx.moveTo(gx,capY); ctx.lineTo(gx+gw,capY); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+    label(ctx,'Market Limit  (driver supply + regulatory cap)',gx+8,capY-9,12,C.red,'left');
+
+    // Grid + y-labels
+    const midY=plotY(0.5);
+    ctx.save(); ctx.strokeStyle='#1e2d45'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(gx,midY); ctx.lineTo(gx+gw,midY); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+    label(ctx,'50M',gx-6,midY,11,C.sub,'right');
+    label(ctx,'100M',gx-6,capY,11,C.sub,'right');
+    label(ctx,'Users →',gx-10,gy+gh/2,11,C.sub,'right');
+
+    // Animated S-curve (same logistic, different context)
+    const drawPx=clamp((lt-0.5)/10*gw,0,gw);
+    ctx.save(); ctx.strokeStyle=C.blue; ctx.lineWidth=3; ctx.beginPath();
+    for(let x=0;x<=drawPx;x++){
+      const yr=x/gw*YEARS, v=logistic(yr,YEARS,0.6);
+      const vy=plotY(v);
+      x===0?ctx.moveTo(gx+x,vy):ctx.lineTo(gx+x,vy);
+    }
+    ctx.stroke(); ctx.restore();
+
+    if(drawPx>1){
+      const curYr=drawPx/gw*YEARS, curV=logistic(curYr,YEARS,0.6);
+      const curX=gx+drawPx, curY=plotY(curV);
+      circle(ctx,curX,curY,6,C.blue,C.text);
+      label(ctx,Math.round(curV*100)+'M users',curX+10,curY,13,C.blue,'left');
+    }
+
+    // Key event dots
+    const events=[
+      {yr:1, lbl:'App Launch', lt_show:1.5},
+      {yr:3.2, lbl:'Viral growth', lt_show:3},
+      {yr:5.5, lbl:'Driver shortage hits', lt_show:5},
+      {yr:8,   lbl:'Growth plateau', lt_show:7.5},
+    ];
+    events.forEach(e=>{
+      if(lt<e.lt_show) return;
+      const alpha=clamp((lt-e.lt_show)*3,0,1);
+      const ex=gx+e.yr/YEARS*gw, ev=logistic(e.yr,YEARS,0.6), ey=plotY(ev);
+      ctx.save(); ctx.globalAlpha=alpha;
+      circle(ctx,ex,ey,5,C.teal,C.teal);
+      label(ctx,e.lbl,ex,ey-16,11,C.teal);
+      ctx.restore();
+    });
+
+    // Phase 1: R loop (word of mouth)
+    if(lt>2){
+      const alpha=clamp((lt-2)*1.5,0,1);
+      ctx.save(); ctx.globalAlpha=alpha;
+      roundRect(ctx,gx+14,botY-110,216,50,8,C.blue+'18',C.blue+'55');
+      labelBold(ctx,'(R) Word-of-Mouth Loop',gx+14+108,botY-96,12,C.blue);
+      label(ctx,'Happy riders → reviews & referrals →',gx+14+108,botY-80,11,C.sub);
+      label(ctx,'more riders → more drivers sign up',gx+14+108,botY-66,11,C.sub);
+      ctx.restore();
+    }
+
+    // Phase 2: B constraint (driver shortage)
+    if(lt>6){
+      const alpha=clamp((lt-6)*1.5,0,1);
+      ctx.save(); ctx.globalAlpha=alpha;
+      roundRect(ctx,gx+gw-222,capY+18,218,52,8,C.red+'18',C.red+'55');
+      labelBold(ctx,'(B) Driver Supply Constraint',gx+gw-222+109,capY+32,12,C.red);
+      label(ctx,'More riders → longer wait times →',gx+gw-222+109,capY+46,11,C.sub);
+      label(ctx,'churn rises + regulations cap drivers',gx+gw-222+109,capY+60,11,C.sub);
+      ctx.restore();
+    }
+
+    // x-axis year labels
+    ['2010','2012','2014','2016','2018','2020'].forEach((yr,i)=>{
+      label(ctx,yr,gx+i*2/YEARS*gw,botY+10,11,C.sub);
+    });
+    label(ctx,'Time →',gx+gw+8,botY,11,C.sub,'left');
+
+    // Strategic trap callout
+    if(lt>8){
+      const alpha=clamp((lt-8)*2,0,1);
+      ctx.save(); ctx.globalAlpha=alpha;
+      roundRect(ctx,W/2-220,H-76,440,58,8,'#0f1624',C.amber+'44');
+      labelBold(ctx,'The Structural Trap',W/2,H-61,14,C.amber);
+      label(ctx,'More ads and lower prices will NOT fix a driver shortage.',W/2,H-44,12,C.sub);
+      label(ctx,'You must address the CONSTRAINT — or find a fundamentally new system.',W/2,H-28,12,C.amber);
+      ctx.restore();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION 10: LEVERAGE POINTS
+// ═══════════════════════════════════════════════════════════════════
+function animLeverage(ctx, W, H, t) {
+  labelBold(ctx,'Leverage Points — where small shifts produce big change',W/2,32,14,C.text);
+  label(ctx,'Most interventions happen at the weakest levels',W/2,52,12,C.sub);
+
+  const PERIOD=15, T=t%PERIOD;
+  const levels=[
+    {level:'12–10',label:'Numbers & Parameters',sub:'Change a rate, tax, price',color:'#374151',power:0.15,ex:'Raise parking fees'},
+    {level:'9–7',label:'Structure & Delays',sub:'Change information flows, timing',color:'#6b7280',power:0.38,ex:'Real-time congestion data'},
+    {level:'6–5',label:'Feedback Loops',sub:'Restructure who gets what info',color:C.blue,power:0.58,ex:'Singapore ERP pricing'},
+    {level:'4–3',label:'Rules & Goals',sub:'Change what the system aims for',color:C.purple,power:0.78,ex:'Congestion reduction target'},
+    {level:'2–1',label:'Paradigms & Mindsets',sub:'Change the beliefs driving behavior',color:C.green,power:1.0,ex:'Car ≠ status symbol'},
+  ];
+
+  const bh=36, gap=10;
+  const totalH=levels.length*(bh+gap);
+  const startY=H/2-totalH/2+20;
+
+  // Animate a pulse from bottom to top
+  const pulseCycle=(T/PERIOD);
+  const pulseLevel=pulseCycle*levels.length;
+
+  levels.forEach((lv,i)=>{
+    const y=startY+i*(bh+gap);
+    const barW=W-160;
+    const fillW=lv.power*barW;
+    const isHighlighted=Math.abs(i-(levels.length-1-Math.floor(pulseLevel%levels.length)))<0.5;
+
+    roundRect(ctx,80,y,barW,bh,6,'#0d1527',lv.color+'33',isHighlighted?1:0.7);
+    roundRect(ctx,80,y,fillW,bh,6,lv.color+'22',lv.color+'88',isHighlighted?1:0.5);
+
+    if(isHighlighted) {
+      ctx.save(); ctx.shadowColor=lv.color; ctx.shadowBlur=15;
+      roundRect(ctx,80,y,barW,bh,6,null,lv.color);
+      ctx.restore();
+    }
+
+    // Level badge
+    roundRect(ctx,82,y+6,36,bh-12,4,lv.color+'33',lv.color+'66',isHighlighted?1:0.6);
+    label(ctx,'L'+lv.level,100,y+bh/2,9,lv.color);
+
+    // Text
+    labelBold(ctx,lv.label,80+50+barW*lv.power/2,y+13,isHighlighted?13:11,isHighlighted?lv.color:lv.color+'bb','left');
+    label(ctx,lv.sub,80+50+4,y+27,10,isHighlighted?'#9ca3af':'#374151','left');
+
+    // Example
+    if(isHighlighted) label(ctx,'e.g. '+lv.ex,80+barW-4,y+bh/2,10,lv.color+'cc','right');
+
+    // Power %
+    label(ctx,Math.round(lv.power*100)+'%',80+fillW+6,y+bh/2,10,lv.color,'left');
+  });
+
+  // Arrow and labels
+  ctx.save(); ctx.strokeStyle=C.green+'44'; ctx.lineWidth=1.5;
+  arrow(ctx,50,startY+totalH,50,startY,C.green+'66',1.5);
+  ctx.restore();
+  label(ctx,'Leverage',50,startY-12,10,C.green+'88');
+  label(ctx,'Power',50,startY-24,10,C.green+'88');
+  label(ctx,'LOW',50,startY+totalH+12,10,C.sub);
+  label(ctx,'HIGH',50,startY-36,10,C.green);
+
+  label(ctx,'← Most interventions happen here',80+W*0.25,H-32,11,'#4b5563','left');
+  label(ctx,'Most powerful (hardest to change) →',80+W*0.25,H-18,11,C.green+'88','left');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+// Fit canvas to panel
+function resizeCanvas() {
+  const panel=document.getElementById('anim-panel');
+  if(!panel.clientWidth) return;
+  const c=document.getElementById('anim');
+  const ratio=640/420;
+  const maxW=panel.clientWidth-48, maxH=panel.clientHeight-48;
+  if(maxW/maxH>ratio) { c.style.width=(maxH*ratio)+'px'; c.style.height=maxH+'px'; }
+  else { c.style.width=maxW+'px'; c.style.height=(maxW/ratio)+'px'; }
+}
+window.addEventListener('resize',resizeCanvas);
+setTimeout(resizeCanvas,100);
+</script>
+</body>
+</html>

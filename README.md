@@ -3,6 +3,10 @@
 Interactive web tools for Session 4 of **AI for Strategic Decision-Making & Innovation**.
 No installation required — runs entirely in the browser.
 
+## Course Context
+
+These tools accompany the in-class activities for Session 4 of **AI for Strategic Decision-Making & Innovation**, which apply systems thinking to real cases including Nokia's decline, Apple's ecosystem, and Beijing's traffic policy.
+
 ## Tools
 
 ### 1. Visual Concept Explorer
@@ -34,7 +38,3 @@ A draggable, interactive map of 16 interconnected systems thinking concepts.
 - **Filter presets**: Full Map, Feedback Loops, Archetypes, Leverage Points
 - **Generate AI study prompt**: copies a personalized prompt based on your knowledge markings — paste into Claude or ChatGPT for targeted explanations
 
-
-## Course Context
-
-These tools accompany the in-class activities for Session 4 of **AI for Strategic Decision-Making & Innovation**, which apply systems thinking to real cases including Nokia's decline, Apple's ecosystem, and Beijing's traffic policy.

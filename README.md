@@ -3,11 +3,15 @@
 Interactive web tools for Session 4 of **AI for Strategic Decision-Making & Innovation**.
 No installation required — runs entirely in the browser.
 
-## Course Context
+## 🌐 Live Site
+
+https://rui-ray-wang.github.io/systems-thinking
+
+## 📘 Course Context
 
 These tools accompany the in-class activities for Session 4 of **AI for Strategic Decision-Making & Innovation**, which apply systems thinking to real cases including Nokia's decline, Apple's ecosystem, and Beijing's traffic policy.
 
-## Tools
+## 🎯 Tools
 
 ### 1. Visual Concept Explorer
 **File:** `systems-thinking-animations.html`
